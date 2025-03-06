@@ -7,7 +7,7 @@ from typing_extensions import Any, override
 from mdata_flow.datasets_manager.composites import PdDataset
 from mdata_flow.datasets_manager.visitors.figure_visitor import FigureVisitor
 from mdata_flow.datasets_manager.visitors.utils import FigureArtifact
-from mdata_flow.plots_lib import plot_correlation_matrix
+from mdata_flow.plotly_ext.func_library import plot_correlation_matrix
 
 
 class PlotlyCorrVisitor(FigureVisitor):

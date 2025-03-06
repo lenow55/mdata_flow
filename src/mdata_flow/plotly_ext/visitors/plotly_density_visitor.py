@@ -6,23 +6,26 @@ from mdata_flow.datasets_manager.composites import PdDataset
 from mdata_flow.datasets_manager.visitors.figure_visitor import FigureVisitor
 from mdata_flow.datasets_manager.visitors.utils import FigureArtifact
 from mdata_flow.file_name_validator import FileNameValidator
-from mdata_flow.plots_lib import plot_box_diagram
+from mdata_flow.plotly_ext.func_library import plot_density_diagram
 
 
-class PlotlyBoxplotVisitor(FigureVisitor):
+class PlotlyDensityVisitor(FigureVisitor):
     """
-    Рассчитывает матрицу корелляций для датасетов
+    Рассчитывает график плотности числового значения
+    по категориальным значениям
     """
 
     def __init__(
         self,
-        x_col: str,
-        y_col: str,
+        categorical_col: str,
+        numeric_col: str,
+        labels_map: dict[Any, str] | None = None,
         plot_size: tuple[int, int] = (800, 600),
     ) -> None:
         super().__init__(plot_size=plot_size)
-        self._x_col: str = x_col
-        self._y_col: str = y_col
+        self._categorical_column: str = categorical_col
+        self._numeric_column: str = numeric_col
+        self._labels_map = labels_map
 
     def _check_type(self, data_type: Any) -> bool:
         if not isinstance(data_type, DataType):
@@ -38,24 +41,30 @@ class PlotlyBoxplotVisitor(FigureVisitor):
     @final
     @override
     def _pandas_plot_figure(self, elem: PdDataset) -> FigureArtifact | None:
-        y_data_type = elem.schema.input_types_dict()[self._y_col]
-        if not self._check_type(y_data_type):
+        num_data_type = elem.schema.input_types_dict()[self._numeric_column]
+        if not self._check_type(num_data_type):
             print(
-                f"Warning can't use col {self._y_col} due to data type: {y_data_type}"
+                f"Warning can't use col {self._numeric_column} due to data type: {num_data_type}"
             )
             return None
 
         dataset = elem.getDataset()
 
-        box_plot = plot_box_diagram(
-            df=dataset, x_col=self._x_col, y_col=self._y_col, plot_size=self._plot_size
+        density_plot = plot_density_diagram(
+            df=dataset,
+            numeric_col=self._numeric_column,
+            categorical_col=self._categorical_column,
+            labels_map=self._labels_map,
+            plot_size=self._plot_size,
         )
 
-        artifact_name = f"box_plot_{self._y_col}_on_{self._x_col}.html"
+        artifact_name = (
+            f"density_plot_{self._numeric_column}_by_{self._categorical_column}.html"
+        )
         if not FileNameValidator.is_valid(artifact_name):
             artifact_name = FileNameValidator.sanitize(artifact_name)
 
         return {
-            "plot": box_plot,
+            "plot": density_plot,
             "artifact_name": artifact_name,
         }

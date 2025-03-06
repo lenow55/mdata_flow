@@ -1,5 +1,5 @@
 import typing
-from mdata_flow.lazy_loader import LazyLoader
+
 from mdata_flow.datasets_manager.visitors.cache_mover_visitor import (
     CacheMoverDatasetVisitor,
 )
@@ -29,32 +29,15 @@ from mdata_flow.datasets_manager.visitors.xxh_digest_visitor import (
     XXHDigestDatasetVisitor,
 )
 
-if typing.TYPE_CHECKING:
-    from mdata_flow.datasets_manager.visitors.plotly.plotly_boxplot_visitor import (
-        PlotlyBoxplotVisitor,
-    )
-    from mdata_flow.datasets_manager.visitors.plotly.plotly_corr_visitor import (
-        PlotlyCorrVisitor,
-    )
-    from mdata_flow.datasets_manager.visitors.plotly.plotly_density_visitor import (
-        PlotlyDensityVisitor,
-    )
-else:
-    pass
-    faster_whisper = LazyLoader("faster_whisper")
-    fw_transcribe = LazyLoader("faster_whisper.transcribe")
 
 __all__ = [
     "CSVSaverDatasetVisitor",
     "XXHDigestDatasetVisitor",
     "CacheMoverDatasetVisitor",
-    "PlotlyCorrVisitor",
-    "PlotlyBoxplotVisitor",
     "ArtifactUploaderDatasetVisitor",
     "FiguresUploaderDatasetVisitor",
     "FigureVisitor",
     "PreviewUploaderVisitor",
-    "PlotlyDensityVisitor",
     "CountByCategoryReportVisitor",
     "DataQualityReportVisitor",
     "EvidentlyReportVisitor",
