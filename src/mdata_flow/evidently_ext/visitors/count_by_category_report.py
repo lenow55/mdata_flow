@@ -3,10 +3,12 @@ from typing import final
 from evidently.report import Report
 from typing_extensions import override
 
-from mdata_flow.datasets_manager.visitors.evidently_report_visitor import (
+from mdata_flow.evidently_ext.column_count_by_category import (
+    ColumnCountByCategoryMetric,
+)
+from mdata_flow.evidently_ext.visitors.evidently_abs_report_visitor import (
     EvidentlyReportVisitor,
 )
-from evidently_metrics.column_count_by_category import ColumnCountByCategoryMetric
 
 
 class CountByCategoryReportVisitor(EvidentlyReportVisitor):

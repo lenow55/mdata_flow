@@ -4,7 +4,7 @@ from evidently.report import Report
 from evidently.metric_preset import DataQualityPreset
 from typing_extensions import override
 
-from mdata_flow.datasets_manager.visitors.evidently_report_visitor import (
+from mdata_flow.evidently_ext.visitors.evidently_abs_report_visitor import (
     EvidentlyReportVisitor,
 )
 

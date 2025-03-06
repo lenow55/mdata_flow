@@ -3,20 +3,11 @@ import typing
 from mdata_flow.datasets_manager.visitors.cache_mover_visitor import (
     CacheMoverDatasetVisitor,
 )
-from mdata_flow.datasets_manager.visitors.count_by_category_report import (
-    CountByCategoryReportVisitor,
-)
 from mdata_flow.datasets_manager.visitors.csv_saver_visitor import (
     CSVSaverDatasetVisitor,
 )
-from mdata_flow.datasets_manager.visitors.data_quality_report import (
-    DataQualityReportVisitor,
-)
 from mdata_flow.datasets_manager.visitors.dataset_uploader_mlflow_visitor import (
     ArtifactUploaderDatasetVisitor,
-)
-from mdata_flow.datasets_manager.visitors.evidently_report_visitor import (
-    EvidentlyReportVisitor,
 )
 from mdata_flow.datasets_manager.visitors.figure_visitor import FigureVisitor
 from mdata_flow.datasets_manager.visitors.figures_uploader_mlflow_visitor import (
@@ -38,7 +29,4 @@ __all__ = [
     "FiguresUploaderDatasetVisitor",
     "FigureVisitor",
     "PreviewUploaderVisitor",
-    "CountByCategoryReportVisitor",
-    "DataQualityReportVisitor",
-    "EvidentlyReportVisitor",
 ]

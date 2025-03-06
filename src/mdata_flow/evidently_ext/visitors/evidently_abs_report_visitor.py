@@ -1,6 +1,6 @@
 import os
 from abc import ABC, abstractmethod
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import TemporaryDirectory
 from typing import final
 
 from evidently.pipeline.column_mapping import ColumnMapping

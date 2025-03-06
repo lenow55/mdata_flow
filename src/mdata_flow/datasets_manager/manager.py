@@ -16,7 +16,6 @@ from mdata_flow.datasets_manager.interfaces import DatasetVisitor, IDataset
 from mdata_flow.datasets_manager.visitors import (
     ArtifactUploaderDatasetVisitor,
     CacheMoverDatasetVisitor,
-    EvidentlyReportVisitor,
     FiguresUploaderDatasetVisitor,
     FigureVisitor,
     PreviewUploaderVisitor,
@@ -129,6 +128,7 @@ class DatasetManager:
         self._dataset_composite.Accept(figs_uploader)
         # загрузка закончена
 
+    # FIXME: и тут сделать уникальный класс загрузчика
     def register_preview(self, visitor: PreviewUploaderVisitor):
         if not isinstance(self._experiment_id, str):
             raise RuntimeError("Run setup first")
@@ -146,22 +146,26 @@ class DatasetManager:
         self._dataset_composite.Accept(visitor)
         # превью загружено
 
-    def register_reports(self, visitors: list[EvidentlyReportVisitor]):
-        if not isinstance(self._experiment_id, str):
-            raise RuntimeError("Run setup first")
+    # FIXME: переписать на уникальную загрузку, а то тут только эвидентли
+    # загружается
+    # базовый класс uploader сделать
 
-        if not isinstance(self._dataset_composite, IDataset):
-            raise RuntimeError("Register datasets first")
-
-        if not isinstance(self._actual_run, Run):
-            raise RuntimeError("No actual_run")
-
-        for visitor in visitors:
-            visitor.set_scope(self.get_results())
-            visitor.set_client(self._client)
-            visitor.run = self._actual_run
-            self._dataset_composite.Accept(visitor)
-        # превью загружено
+    # def register_reports(self, visitors: list[EvidentlyReportVisitor]):
+    #     if not isinstance(self._experiment_id, str):
+    #         raise RuntimeError("Run setup first")
+    #
+    #     if not isinstance(self._dataset_composite, IDataset):
+    #         raise RuntimeError("Register datasets first")
+    #
+    #     if not isinstance(self._actual_run, Run):
+    #         raise RuntimeError("No actual_run")
+    #
+    #     for visitor in visitors:
+    #         visitor.set_scope(self.get_results())
+    #         visitor.set_client(self._client)
+    #         visitor.run = self._actual_run
+    #         self._dataset_composite.Accept(visitor)
+    #     # превью загружено
 
     def finish_upload(self):
         if self._actual_run:
