@@ -1,6 +1,7 @@
 import tempfile
 from typing import TypedDict
 
+from pandas.core.frame import CompressionOptions
 from typing_extensions import Any, override
 
 from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
@@ -17,9 +18,9 @@ class CSVSaverDatasetVisitor(TypedDatasetVisitor):
     Сохраняет файлики CSV во временную директорию
     """
 
-    def __init__(self, compression: dict[str, Any] | str = "infer") -> None:
+    def __init__(self, compression: CompressionOptions = "infer") -> None:
         super().__init__()
-        self._compression: dict[str, Any] | str = compression
+        self._compression: CompressionOptions = compression
 
     @override
     def VisitPdDataset(self, elem: PdDataset):
