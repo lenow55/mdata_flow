@@ -9,6 +9,7 @@ from mdata_flow.file_name_validator import FileNameValidator
 from mdata_flow.plotly_ext.func_library import plot_box_diagram
 
 
+@final
 class PlotlyBoxplotVisitor(FigureVisitor):
     """
     Рассчитывает матрицу корелляций для датасетов
@@ -35,7 +36,6 @@ class PlotlyBoxplotVisitor(FigureVisitor):
             DataType.float,
         ]
 
-    @final
     @override
     def _pandas_plot_figure(self, elem: PdDataset) -> FigureArtifact | None:
         y_data_type = elem.schema.input_types_dict()[self._y_col]

@@ -16,12 +16,11 @@ from mdata_flow.datasets_manager.interfaces import DatasetVisitor, IDataset
 from mdata_flow.datasets_manager.visitors import (
     ArtifactUploaderDatasetVisitor,
     CacheMoverDatasetVisitor,
-    FiguresUploaderDatasetVisitor,
-    FigureVisitor,
-    PreviewUploaderVisitor,
     XXHDigestDatasetVisitor,
 )
-from mdata_flow.datasets_manager.visitors.utils import FigureArtifact
+from mdata_flow.datasets_manager.visitors.scoped_abs_info_uploader import (
+    ScopedABSUploaderVisitor,
+)
 
 
 def get_or_create_experiment(
@@ -96,10 +95,15 @@ class DatasetManager:
         else:
             return False
 
-    def register_figures(
+    def register_extra_uploaders(
         self,
-        plots_visitors: list[FigureVisitor],
+        visitors: list[ScopedABSUploaderVisitor],
     ):
+        """
+        Универсальная функция для загрузки информации
+        о датасетах, по типу графиков, превью, отчётов
+
+        """
         if not isinstance(self._experiment_id, str):
             raise RuntimeError("Run setup first")
 
@@ -109,63 +113,12 @@ class DatasetManager:
         if not isinstance(self._actual_run, Run):
             raise RuntimeError("No actual_run")
 
-        # инициализация хранилища изображений
-        plots_store: dict[str, list[FigureArtifact]] = {}
-
-        # отрисовываем графики
-        for visitor in plots_visitors:
-            visitor.set_saver(plots_store)
+        # генерируем и загружаем графики, превью, отчёты
+        for visitor in visitors:
+            visitor.client = self._client
+            visitor.run = self._actual_run
             visitor.set_scope(self.get_results())
             self._dataset_composite.Accept(visitor)
-
-        # загружаем графики
-        figs_uploader = FiguresUploaderDatasetVisitor(
-            client=self._client,
-            plots_store=plots_store,
-            experiment_id=self._experiment_id,
-        )
-        figs_uploader.run = self._actual_run
-        self._dataset_composite.Accept(figs_uploader)
-        # загрузка закончена
-
-    # FIXME: и тут сделать уникальный класс загрузчика
-    def register_preview(self, visitor: PreviewUploaderVisitor):
-        if not isinstance(self._experiment_id, str):
-            raise RuntimeError("Run setup first")
-
-        if not isinstance(self._dataset_composite, IDataset):
-            raise RuntimeError("Register datasets first")
-
-        if not isinstance(self._actual_run, Run):
-            raise RuntimeError("No actual_run")
-
-        visitor.set_scope(self.get_results())
-        visitor.set_client(self._client)
-        visitor.run = self._actual_run
-
-        self._dataset_composite.Accept(visitor)
-        # превью загружено
-
-    # FIXME: переписать на уникальную загрузку, а то тут только эвидентли
-    # загружается
-    # базовый класс uploader сделать
-
-    # def register_reports(self, visitors: list[EvidentlyReportVisitor]):
-    #     if not isinstance(self._experiment_id, str):
-    #         raise RuntimeError("Run setup first")
-    #
-    #     if not isinstance(self._dataset_composite, IDataset):
-    #         raise RuntimeError("Register datasets first")
-    #
-    #     if not isinstance(self._actual_run, Run):
-    #         raise RuntimeError("No actual_run")
-    #
-    #     for visitor in visitors:
-    #         visitor.set_scope(self.get_results())
-    #         visitor.set_client(self._client)
-    #         visitor.run = self._actual_run
-    #         self._dataset_composite.Accept(visitor)
-    #     # превью загружено
 
     def finish_upload(self):
         if self._actual_run:

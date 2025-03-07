@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+from contextlib import contextmanager
 import os
 from typing import final
 from mlflow import MlflowClient
@@ -5,44 +7,34 @@ from mlflow.entities import Run
 from typing_extensions import override
 
 from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
-from mdata_flow.datasets_manager.visitors.typed_abs_visitor import TypedDatasetVisitor
+from mdata_flow.datasets_manager.visitors.scoped_abs_info_uploader import (
+    ScopedABSUploaderVisitor,
+)
 
 
-class PreviewUploaderVisitor(TypedDatasetVisitor):
+@final
+class PreviewUploaderVisitor(ScopedABSUploaderVisitor):
     """
     Загружает превью датасета
     """
 
-    _work_scope: dict[str, str] | None = None
-
-    _run: Run | None = None
-    _client: MlflowClient | None = None
-
     _root_artifact_path: str = "previews"
+    _count_preview: int
 
     def __init__(
         self,
         count: int = 15,
     ) -> None:
         super().__init__()
-        self._count_preview: int = count
+        self._count_preview = count
 
-    def set_scope(self, value: dict[str, str]):
-        self._work_scope = value
-
-    def set_client(self, client: MlflowClient):
-        self._client = client
-
-    @property
-    def run(self):
-        """The run property."""
-        if not isinstance(self._run, Run):
-            raise RuntimeError("Set run first")
-        return self._run
-
-    @run.setter
-    def run(self, value: Run):
-        self._run = value
+    @final
+    @contextmanager
+    def _manage_path(self, scope: str) -> Iterator[None]:
+        try:
+            yield
+        finally:
+            pass
 
     @final
     @override
@@ -62,10 +54,3 @@ class PreviewUploaderVisitor(TypedDatasetVisitor):
             data=head_preview,
             artifact_file=os.path.join(self._root_artifact_path, f"{elem.name}.json"),
         )
-
-    @final
-    @override
-    def VisitGroupDataset(self, elem: GroupDataset):
-        for name, value in elem.datasets.items():
-            if self._work_scope and name in self._work_scope:
-                value.Accept(visitor=self)

@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+from contextlib import contextmanager
 import os
 from abc import ABC, abstractmethod
 from tempfile import TemporaryDirectory
@@ -11,16 +13,16 @@ from mlflow.entities import Run
 from typing_extensions import override
 
 from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
-from mdata_flow.datasets_manager.visitors.typed_abs_visitor import TypedDatasetVisitor
+from mdata_flow.datasets_manager.visitors.scoped_abs_info_uploader import (
+    ScopedABSUploaderVisitor,
+)
 
 
-class EvidentlyReportVisitor(TypedDatasetVisitor, ABC):
+class EvidentlyReportVisitor(ScopedABSUploaderVisitor, ABC):
     """
     Рассчитывает отчёты evidently
     """
 
-    # _results: dict[str, list[Report]] | None = None
-    _work_scope: dict[str, str] | None = None
     _root_artifact_path: str = "reports"
     _tempdir = TemporaryDirectory(delete=False)
 
@@ -31,28 +33,17 @@ class EvidentlyReportVisitor(TypedDatasetVisitor, ABC):
         super().__init__()
         self._column_maping: ColumnMapping = column_maping
 
-    # def set_saver(self, value: dict[str, list[Report]]):
-    #     self._results = value
-    #
     def __del__(self):
         self._tempdir.cleanup()
 
-    def set_scope(self, value: dict[str, str]):
-        self._work_scope = value
-
-    def set_client(self, client: MlflowClient):
-        self._client = client
-
-    @property
-    def run(self):
-        """The run property."""
-        if not isinstance(self._run, Run):
-            raise RuntimeError("Set run first")
-        return self._run
-
-    @run.setter
-    def run(self, value: Run):
-        self._run = value
+    @final
+    @contextmanager
+    def _manage_path(self, scope: str) -> Iterator[None]:
+        try:
+            self._root_artifact_path = os.path.join(self._root_artifact_path, scope)
+            yield
+        finally:
+            self._root_artifact_path = os.path.dirname(self._root_artifact_path)
 
     @abstractmethod
     def _pandas_build_report(self) -> Report | None: ...
@@ -60,12 +51,6 @@ class EvidentlyReportVisitor(TypedDatasetVisitor, ABC):
     @final
     @override
     def VisitPdDataset(self, elem: PdDataset):
-        # if not isinstance(self._results, dict):
-        #     raise RuntimeError("Init results first")
-
-        # if elem.name not in self._results:
-        #     self._results.update({elem.name: []})
-
         report = self._pandas_build_report()
         if not report:
             return
@@ -74,7 +59,6 @@ class EvidentlyReportVisitor(TypedDatasetVisitor, ABC):
             current_data=elem.getDataset(),
             column_mapping=self._column_maping,
         )
-        # self._results[elem.name].append(report)
 
         local_path = os.path.join(self._tempdir.name, f"{report.name}.html")
         report.save_html(
@@ -82,20 +66,8 @@ class EvidentlyReportVisitor(TypedDatasetVisitor, ABC):
             mode=SaveMode.SINGLE_FILE,
         )
 
-        self._client.log_artifact(
+        self.client.log_artifact(
             run_id=self.run.info.run_id,
             local_path=local_path,
             artifact_path=self._root_artifact_path,
         )
-
-    @final
-    @override
-    def VisitGroupDataset(self, elem: GroupDataset):
-        # if not isinstance(self._results, dict):
-        #     raise RuntimeError("Init results first")
-
-        for name, value in elem.datasets.items():
-            self._root_artifact_path = os.path.join(self._root_artifact_path, name)
-            if self._work_scope and name in self._work_scope:
-                value.Accept(visitor=self)
-            self._root_artifact_path = os.path.dirname(self._root_artifact_path)

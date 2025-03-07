@@ -6,14 +6,14 @@ from mdata_flow.datasets_manager.composites import Dataset, GroupDataset, PdData
 from mdata_flow.datasets_manager.context import DsContext
 from mdata_flow.datasets_manager.manager import DatasetManager
 from mdata_flow.datasets_manager.visitors import (
-    CountByCategoryReportVisitor,
     CSVSaverDatasetVisitor,
-    DataQualityReportVisitor,
-    PlotlyBoxplotVisitor,
-    PlotlyCorrVisitor,
-    PlotlyDensityVisitor,
     PreviewUploaderVisitor,
 )
+from mdata_flow.evidently_ext import CountByCategoryReportVisitor
+from mdata_flow.evidently_ext import DataQualityReportVisitor
+from mdata_flow.plotly_ext import PlotlyBoxplotVisitor
+from mdata_flow.plotly_ext import PlotlyCorrVisitor
+from mdata_flow.plotly_ext import PlotlyDensityVisitor
 
 
 def main():
@@ -53,7 +53,7 @@ def main():
         print("датасеты не нуждаются в обновлении")
         exit(0)
 
-    manager.register_figures(
+    manager.register_extra_uploaders(
         [
             PlotlyCorrVisitor(),
             PlotlyBoxplotVisitor(x_col="label", y_col="Age"),
@@ -72,7 +72,7 @@ def main():
     )
 
     preview = PreviewUploaderVisitor(count=25)
-    manager.register_preview(preview)
+    manager.register_extra_uploaders([preview])
 
     maping = ColumnMapping(
         target="label",
@@ -94,7 +94,7 @@ def main():
             "Relationship",
         ],
     )
-    manager.register_reports(
+    manager.register_extra_uploaders(
         [
             DataQualityReportVisitor(column_maping=maping),
             CountByCategoryReportVisitor(column_maping=maping),

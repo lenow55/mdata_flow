@@ -10,9 +10,6 @@ from mdata_flow.datasets_manager.visitors.dataset_uploader_mlflow_visitor import
     ArtifactUploaderDatasetVisitor,
 )
 from mdata_flow.datasets_manager.visitors.figure_visitor import FigureVisitor
-from mdata_flow.datasets_manager.visitors.figures_uploader_mlflow_visitor import (
-    FiguresUploaderDatasetVisitor,
-)
 from mdata_flow.datasets_manager.visitors.preview_uploader_visitor import (
     PreviewUploaderVisitor,
 )
@@ -26,7 +23,6 @@ __all__ = [
     "XXHDigestDatasetVisitor",
     "CacheMoverDatasetVisitor",
     "ArtifactUploaderDatasetVisitor",
-    "FiguresUploaderDatasetVisitor",
     "FigureVisitor",
     "PreviewUploaderVisitor",
 ]
