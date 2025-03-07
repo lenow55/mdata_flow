@@ -17,7 +17,7 @@ class DataQualityReportVisitor(EvidentlyReportVisitor):
     @final
     @override
     def _pandas_build_report(self) -> Report | None:
-        report = Report(metrics=[DataQualityPreset()])
+        report = Report(metrics=[DataQualityPreset()])  # pyright: ignore[reportArgumentType]
         report.name = "data_quality"
 
         return report

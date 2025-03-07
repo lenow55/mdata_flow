@@ -27,12 +27,12 @@ class CountByCategoryReportVisitor(EvidentlyReportVisitor):
             print("Can't generate report by empty cat cols")
             return None
 
-        report = Report(
+        report = Report(  # pyright: ignore[reportArgumentType]
             metrics=[
                 ColumnCountByCategoryMetric(column_name=name, round_c=2)
                 for name in self._column_maping.categorical_features
-            ]
+            ],
+            name="column_count_by_category",
         )
-        report.name = "column_count_by_category"
 
         return report

@@ -2,7 +2,7 @@ from typing import Any
 
 import pandas as pd
 from evidently.base_metric import InputData, Metric, MetricResult
-from evidently.core import IncludeOptions
+from evidently.core import IncludeOptions, IncludeTags
 from evidently.model.widget import BaseWidgetInfo
 from evidently.renderers.base_renderer import MetricRenderer, default_renderer
 from evidently.renderers.html_widgets import (
@@ -21,12 +21,12 @@ class ColumnCountByCategory(BaseModel):
 
 
 class ColumnCountByCategoryResult(MetricResult):
-    class Config:  # pyright: ignore[reportIncompatibleVariableOverride]
-        type_alias: str = "evidently:metric_result:ColumnCountByCategoryResult"
-
     column_name: str
     current: ColumnCountByCategory
     reference: ColumnCountByCategory | None
+
+    class Config:  # pyright: ignore[reportIncompatibleVariableOverride]
+        type_alias: str = "evidently:metric_result:ColumnCountByCategoryResult"
 
 
 class ColumnCountByCategoryMetric(Metric[ColumnCountByCategoryResult]):
@@ -92,8 +92,10 @@ class ColumnCountByCategoryMetric(Metric[ColumnCountByCategoryResult]):
             percents=current_percents,
         )
 
-        return ColumnCountByCategoryResult(
-            column_name=self.column_name, current=current, reference=reference
+        return ColumnCountByCategoryResult(  # pyright: ignore[reportCallIssue]
+            column_name=self.column_name,  # pyright: ignore[reportCallIssue]
+            current=current,  # pyright: ignore[reportCallIssue]
+            reference=reference,  # pyright: ignore[reportCallIssue]
         )
 
 
@@ -120,8 +122,8 @@ class ColumnCountByCategoryMetricRenderer(MetricRenderer[ColumnCountByCategoryMe
         self,
         obj: ColumnCountByCategoryMetric,
         include_render: bool = False,
-        include: IncludeOptions = None,
-        exclude: IncludeOptions = None,
+        include: IncludeOptions | None = None,
+        exclude: IncludeOptions | None = None,
     ) -> dict[Any, Any]:
         result = obj.get_result().get_dict(include_render, include, exclude)
         return result

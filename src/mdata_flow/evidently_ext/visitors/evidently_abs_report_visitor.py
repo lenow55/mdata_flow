@@ -69,7 +69,7 @@ class EvidentlyReportVisitor(TypedDatasetVisitor, ABC):
         report = self._pandas_build_report()
         if not report:
             return
-        report.run(
+        report.run(  # pyright: ignore[reportArgumentType]
             reference_data=None,
             current_data=elem.getDataset(),
             column_mapping=self._column_maping,
