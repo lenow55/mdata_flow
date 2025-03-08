@@ -11,7 +11,7 @@ defaults:
     shell: bash
 
 jobs:
-  black-formatting-check:
+  ruff-formatting-check:
     name: Check formatting
     runs-on: "ubuntu-latest"
     steps:
@@ -23,7 +23,9 @@ jobs:
   build:
     name: Build tool
     runs-on: ${{ matrix.os }}
-    needs: black-formatting-check
+    needs: ruff-formatting-check
+    env:
+      POETRY_HOME: /opt/poetry
     strategy:
       matrix:
         os:
@@ -44,18 +46,20 @@ jobs:
         id: cache-poetry
         uses: actions/cache@v4
         with:
-          path: ~/.poetry
+          path: ${{ env.POETRY_HOME }}
           key: ${{ matrix.os }}-poetry
       # Only runs when key from caching step changes
       - name: Install latest version of Poetry
         if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
-          curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+          python -m venv $POETRY_HOME
+          $POETRY_HOME/bin/pip install poetry==2.1.*
+          $POETRY_HOME/bin/poetry --version
       # Poetry still needs to be re-prepended to the PATH on each run, since
       # PATH does not persist between runs.
       - name: Add Poetry to $PATH
         run: |
-          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+          echo "$POETRY_HOME/bin" >> $GITHUB_PATH
       - name: Get Poetry version
         run: poetry --version
       - name: Check pyproject.toml validity
