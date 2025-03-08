@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, ClassVar
 from pydantic import BeforeValidator, Field, SecretStr
 from pydantic.functional_validators import field_validator
 from typing_extensions import override
@@ -35,7 +35,7 @@ class DatasetStoreSettings(BaseSettings):
     tracking_uri: str
     local_cache: str
 
-    model_config = SettingsConfigDict(
+    model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
         json_file=(
             "config.json",
             "debug_config.json",
