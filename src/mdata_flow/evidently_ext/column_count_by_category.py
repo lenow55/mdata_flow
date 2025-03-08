@@ -2,7 +2,7 @@ from typing import Any
 
 import pandas as pd
 from evidently.base_metric import InputData, Metric, MetricResult
-from evidently.core import IncludeOptions, IncludeTags
+from evidently.core import IncludeOptions
 from evidently.model.widget import BaseWidgetInfo
 from evidently.renderers.base_renderer import MetricRenderer, default_renderer
 from evidently.renderers.html_widgets import (

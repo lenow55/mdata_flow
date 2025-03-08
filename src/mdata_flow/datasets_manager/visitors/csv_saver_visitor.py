@@ -1,8 +1,8 @@
 import tempfile
 from typing import TypedDict
 
-from pandas.core.frame import CompressionOptions
-from typing_extensions import Any, override
+from pandas.core.generic import CompressionOptions
+from typing_extensions import override
 
 from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
 from mdata_flow.datasets_manager.visitors.typed_abs_visitor import TypedDatasetVisitor

@@ -146,7 +146,7 @@ class ArtifactUploaderDatasetVisitor(TypedDatasetVisitor):
             )
 
         dataset_input = DatasetInput(
-            dataset=flow_pd_dataset._to_mlflow_entity(),  ## pyright: ignore[reportAttributeAccessIssue]
+            dataset=flow_pd_dataset._to_mlflow_entity(),  ## pyright: ignore[reportPrivateUsage]
             tags=tags_to_log,
         )
 

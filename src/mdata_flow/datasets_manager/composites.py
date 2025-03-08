@@ -3,7 +3,7 @@ from typing import final
 
 import pandas as pd
 from mlflow.types.schema import Schema
-from mlflow.types.utils import _infer_schema
+from mlflow.types.utils import _infer_schema  # pyright: ignore[reportPrivateUsage]
 from typing_extensions import override
 
 from mdata_flow.datasets_manager.interfaces import DatasetVisitor, IDataset
