@@ -53,6 +53,7 @@ jobs:
         if: steps.cache-poetry.outputs.cache-hit != 'true'
         run: |
           python -m venv $POETRY_HOME
+          echo `ls $POETRY_HOME`
           $POETRY_HOME/bin/pip install poetry==2.1.*
           $POETRY_HOME/bin/poetry --version
       # Poetry still needs to be re-prepended to the PATH on each run, since
