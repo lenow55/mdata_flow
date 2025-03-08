@@ -4563,5 +4563,5 @@ reports = ["evidently", "plotly"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = ">=3.11 <3.13"
-content-hash = "3a88de4508d54b5badac9b64007a3267340032f87ad5cb0617b33dc242919e09"
+python-versions = ">=3.11,<3.13"
+content-hash = "83a394acd4e117b8305d913437e0f0de40aed6dffa95fbcbc413aae6438ad473"
