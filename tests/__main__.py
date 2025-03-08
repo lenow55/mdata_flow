@@ -2,18 +2,23 @@ import pandas as pd
 from evidently.pipeline.column_mapping import ColumnMapping
 
 from mdata_flow.config import DatasetStoreSettings
-from mdata_flow.datasets_manager.composites import Dataset, GroupDataset, PdDataset
+from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
 from mdata_flow.datasets_manager.context import DsContext
+from mdata_flow.datasets_manager.interfaces import IDataset
 from mdata_flow.datasets_manager.manager import DatasetManager
 from mdata_flow.datasets_manager.visitors import (
     CSVSaverDatasetVisitor,
     PreviewUploaderVisitor,
 )
-from mdata_flow.evidently_ext import CountByCategoryReportVisitor
-from mdata_flow.evidently_ext import DataQualityReportVisitor
-from mdata_flow.plotly_ext import PlotlyBoxplotVisitor
-from mdata_flow.plotly_ext import PlotlyCorrVisitor
-from mdata_flow.plotly_ext import PlotlyDensityVisitor
+from mdata_flow.evidently_ext import (
+    CountByCategoryReportVisitor,
+    DataQualityReportVisitor,
+)
+from mdata_flow.plotly_ext import (
+    PlotlyBoxplotVisitor,
+    PlotlyCorrVisitor,
+    PlotlyDensityVisitor,
+)
 
 
 def main():
@@ -36,11 +41,11 @@ def main():
     if not isinstance(train, pd.DataFrame):
         raise RuntimeError("Bad train DataFrame")
 
-    datasets: list[Dataset] = [
+    datasets: list[IDataset] = [
         PdDataset("df_train", train, targets="label", context=DsContext.TRAIN),
         PdDataset("df_test", test, targets="label", context=DsContext.TEST),
     ]
-    composite = GroupDataset(datasets)
+    composite = GroupDataset(name="test-group", datasets=datasets)
     saver_v = CSVSaverDatasetVisitor(compression="zstd")
 
     manager = DatasetManager(ds_config, saver_v)
