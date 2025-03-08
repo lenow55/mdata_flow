@@ -30,6 +30,14 @@ jobs:
         run: |
           PROJECT_VERSION=$(poetry version --short)
           echo "PROJECT_VERSION=$PROJECT_VERSION" >> $GITHUB_ENV
+
+          # Определяем, является ли версия пререлизом
+          if [[ "$PROJECT_VERSION" == *"rc"* ]]; then
+            echo "PRERELEASE=true" >> $GITHUB_ENV
+          else
+            echo "PRERELEASE=false" >> $GITHUB_ENV
+          fi
+
       - name: Check if tag version matches project version
         run: |
           TAG=$(git describe HEAD --tags --abbrev=0)
@@ -64,6 +72,7 @@ jobs:
         with:
           body_path: ".github/RELEASE-TEMPLATE.md"
           draft: true
+          prerelease: ${{ env.PRERELEASE }}
           files: |
             dist/mdata_flow-${{env.PROJECT_VERSION}}-py3-none-any.whl
             dist/mdata_flow-${{env.PROJECT_VERSION}}.tar.gz
