@@ -71,9 +71,9 @@ class ScopedABSUploaderVisitor(TypedDatasetVisitor, ABC):
     @final
     @override
     def VisitGroupDataset(self, elem: GroupDataset):
-        for name, value in elem.datasets.items():
-            with self._manage_path(name):
+        for value in elem.datasets:
+            with self._manage_path(value.name):
                 # Если имени датасета нет в scope, то пропускаем его
-                if self._work_scope and name not in self._work_scope:
+                if self._work_scope and value.name not in self._work_scope:
                     continue
                 value.Accept(visitor=self)

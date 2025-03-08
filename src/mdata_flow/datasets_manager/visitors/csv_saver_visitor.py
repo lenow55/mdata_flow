@@ -38,5 +38,5 @@ class CSVSaverDatasetVisitor(TypedDatasetVisitor):
 
     @override
     def VisitGroupDataset(self, elem: GroupDataset):
-        for _, value in elem.datasets.items():
+        for value in elem.datasets:
             value.Accept(visitor=self)

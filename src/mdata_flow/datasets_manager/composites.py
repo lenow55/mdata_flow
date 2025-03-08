@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import final
 
 import pandas as pd
 from mlflow.types.schema import Schema
@@ -53,6 +54,7 @@ class Dataset(IDataset, ABC):
         count_cols: int = 0,
         count_rows: int = 0,
     ):
+        super().__init__()
         self.name: str = name
         self._count_cols: int = count_cols
         self._count_rows: int = count_rows
@@ -122,18 +124,19 @@ class Dataset(IDataset, ABC):
 
 
 # Concrete Dataset classes
+@final
 class GroupDataset(IDataset):
-    def __init__(self, datasets: list[Dataset]):
+    def __init__(self, name: str, datasets: list[IDataset]):
         super().__init__()
-        self.datasets: dict[str, Dataset] = {}
-        for dataset in datasets:
-            self.datasets.update({dataset.name: dataset})
+        self.name = name
+        self.datasets: list[IDataset] = datasets
 
     @override
     def Accept(self, visitor: DatasetVisitor) -> None:
         visitor.Visit(self)
 
 
+@final
 class PdDataset(Dataset):
     def __init__(
         self,

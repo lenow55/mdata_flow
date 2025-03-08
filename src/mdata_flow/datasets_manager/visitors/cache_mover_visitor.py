@@ -17,7 +17,7 @@ class CacheMoverDatasetVisitor(TypedDatasetVisitor):
     # Результаты перемещения, заносятся все пути датасетов
     # решение загружать или нет принимает загрузчик
     _results: dict[str, str] = {}
-    _current_type: str = ""
+    _current_ds_name: str = ""
 
     def __init__(self, cache_folder: str, store_run_name: str) -> None:
         if not FileNameValidator.is_valid(store_run_name):
@@ -35,11 +35,11 @@ class CacheMoverDatasetVisitor(TypedDatasetVisitor):
             os.remove(elem.temp_path)
         else:
             shutil.move(elem.temp_path, store_dataset_path)
-        self._results.update({self._current_type: store_dataset_path.as_posix()})
+        self._results.update({self._current_ds_name: store_dataset_path.as_posix()})
         elem.file_path = store_dataset_path.as_posix()
 
     @override
     def VisitGroupDataset(self, elem: GroupDataset):
-        for ds_type, value in elem.datasets.items():
-            self._current_type = ds_type
+        for value in elem.datasets:
+            self._current_ds_name = value.name
             value.Accept(visitor=self)

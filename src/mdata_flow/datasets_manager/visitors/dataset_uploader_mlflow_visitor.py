@@ -157,7 +157,7 @@ class ArtifactUploaderDatasetVisitor(TypedDatasetVisitor):
     @override
     def VisitGroupDataset(self, elem: GroupDataset):
         self._root_artifact_path = "datasets"
-        for _, dataset in elem.datasets.items():
+        for dataset in elem.datasets:
             dataset.Accept(visitor=self)
         self._root_artifact_path = None
 
