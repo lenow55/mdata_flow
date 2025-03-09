@@ -13,11 +13,16 @@ jobs:
     environment:
       name: release
     steps:
-      - name: Retrieve release distributions
-        uses: actions/download-artifact@v4
-        with:
-          name: release-dists
-          path: dist/
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Download release assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist
+          gh release download ${{ github.event.release.tag_name }} --dir dist
+
       - name: Debug dist
         run: ls -lah dist/
 
