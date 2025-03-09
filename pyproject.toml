@@ -1,6 +1,6 @@
 [project]
 name = "mdata-flow"
-version = "0.0.3rc0"
+version = "0.0.3rc1"
 description = ""
 authors = [{ name = "Ilia Novikov", email = "nov.ilucha@yandex.ru" }]
 readme = "README.md"
