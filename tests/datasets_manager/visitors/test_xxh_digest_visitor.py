@@ -76,7 +76,7 @@ root2_group = GroupDataset(
         ),
     ],
 )
-def test_xxhdigest_nested(in_composite: GroupDataset, expected_result: NestedDict):
+def test_xxhdigest_nested(in_composite: GroupDataset, expected_result: NestedDict[str]):
     visitor = XXHDigestDatasetVisitor()
 
     with patch.object(
