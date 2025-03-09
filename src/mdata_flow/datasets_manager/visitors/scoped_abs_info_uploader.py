@@ -13,7 +13,8 @@ from mdata_flow.datasets_manager.visitors.typed_abs_visitor import TypedDatasetV
 
 class ScopedABSUploaderVisitor(TypedDatasetVisitor, ABC):
     """
-    Загружает превью датасета
+    Абстрактный посетитель с возможностью указания scope.
+    Не сохраняет результаты в самом себе
     """
 
     _work_scope: dict[str, str] | None = None
