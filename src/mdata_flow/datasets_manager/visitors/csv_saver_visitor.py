@@ -8,14 +8,11 @@ from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
 from mdata_flow.datasets_manager.visitors.typed_abs_visitor import TypedDatasetVisitor
 
 
-class RecursiveTypedDict(TypedDict):
-    key: str
-    nested: "str|RecursiveTypedDict"
-
-
 class CSVSaverDatasetVisitor(TypedDatasetVisitor):
     """
     Сохраняет файлики CSV во временную директорию
+    Результаты прям в объект датасета пишет
+    Не ограничен уровень вложенности
     """
 
     def __init__(self, compression: CompressionOptions = "infer") -> None:
