@@ -35,18 +35,16 @@ class NestedResultsDatasetVisitor(TypedDatasetVisitor, ABC, Generic[T]):
     @final
     @override
     def VisitPdDataset(self, elem: PdDataset):
-        if not len(self._current_ds_key_path):
-            raise RuntimeError("Run without GroupDataset")
-
         result = self._visit_pd_dataset(elem)
         # забираем текущий ключ из списка и по нему назначаем
         # результат
         try:
             key = self._current_ds_key_path[-1]
             self._results_tmp_link.update({key: result})
-        except KeyError as e:
-            e.add_note("Bad keys list")
-            raise
+        except IndexError:
+            # INFO: Посетитель обрабатывает только один датасет
+            # просто добавим ключ в результат
+            self._results_tmp_link.update({elem.name: result})
 
     @contextmanager
     def _manage_path(self) -> Iterator[None]:

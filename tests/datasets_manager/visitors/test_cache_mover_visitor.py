@@ -8,6 +8,7 @@ import pandas as pd
 import pytest
 
 from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
+from mdata_flow.datasets_manager.interfaces import IDataset
 from mdata_flow.datasets_manager.visitors import CacheMoverDatasetVisitor
 from mdata_flow.types import NestedDict
 
@@ -57,6 +58,17 @@ def cache_dir() -> Generator[str, None, None]:
             id="test_cache_mover_visitor_flat",
         ),
         pytest.param(
+            create_dataset("file1"),
+            {
+                "file1": "test_run1/file1.csv",
+            },
+            [
+                "file1.csv",
+            ],
+            "test_run1",
+            id="test_cache_mover_visitor_no_group",
+        ),
+        pytest.param(
             GroupDataset(
                 name="root",
                 datasets=[
@@ -92,7 +104,7 @@ def cache_dir() -> Generator[str, None, None]:
     ],
 )
 def test_cache_mover_visitor(
-    in_composite: GroupDataset,
+    in_composite: IDataset,
     expected_result: NestedDict[str],
     expected_dir_content: list[str],
     run_name: str,
