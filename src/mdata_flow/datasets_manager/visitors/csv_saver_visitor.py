@@ -1,11 +1,13 @@
 import tempfile
-from typing import TypedDict
+from typing import TYPE_CHECKING
 
-from pandas.core.generic import CompressionOptions
 from typing_extensions import override
 
 from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
 from mdata_flow.datasets_manager.visitors.typed_abs_visitor import TypedDatasetVisitor
+
+if TYPE_CHECKING:
+    from pandas._typing import CompressionOptions
 
 
 class CSVSaverDatasetVisitor(TypedDatasetVisitor):

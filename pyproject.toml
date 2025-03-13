@@ -28,6 +28,7 @@ packages = [{ include = "mdata_flow", from = "src" }]
 pylint = "^3.3.4"
 pytest = "^8.3.5"
 allure-pytest = "^2.13.5"
+pandas-stubs = "^2.2.3.250308"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

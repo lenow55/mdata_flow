@@ -8,8 +8,8 @@ from typing_extensions import Any
 
 
 def plot_qq(
-    y_test: pd.Series | NDArray[Any],
-    y_pred: pd.Series | NDArray[Any],
+    y_test: pd.Series[Any] | NDArray[Any],
+    y_pred: pd.Series[Any] | NDArray[Any],
     plot_size: tuple[int, int] = (800, 600),
 ):
     # Вычисляем остатки
