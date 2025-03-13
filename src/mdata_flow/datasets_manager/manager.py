@@ -4,7 +4,7 @@ from functools import partial
 from mlflow.client import MlflowClient
 from mlflow.entities import Run
 from mlflow.store.artifact.artifact_repository_registry import (
-    _artifact_repository_registry,
+    _artifact_repository_registry,  # pyright: ignore[reportPrivateUsage]
 )
 from mlflow.store.artifact.optimized_s3_artifact_repo import (
     OptimizedS3ArtifactRepository,
