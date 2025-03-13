@@ -1,3 +1,4 @@
+from io import BufferedIOBase
 from unittest.mock import patch
 
 import pandas as pd
@@ -8,7 +9,7 @@ from mdata_flow.datasets_manager.visitors import XXHDigestDatasetVisitor
 from mdata_flow.types import NestedDict
 
 
-def fake_xxhash(file):
+def fake_xxhash(file: str | BufferedIOBase):
     return f"fake_hash_{file}" if isinstance(file, str) else "fake_hash_buffer"
 
 
