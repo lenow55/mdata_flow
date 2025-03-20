@@ -28,7 +28,7 @@ class DataExperiment(BaseSettings):
 
 
 class DatasetStoreSettings(BaseSettings):
-    s3_endpoint_url: str = Field(default="http://localhost:9000")  # pyright: ignore[reportAny]
+    s3_endpoint_url: str = Field(default="http://localhost:9000")
     access_key_id: str
     secret_access_key: SecretStr
     data_experiment: DataExperiment
