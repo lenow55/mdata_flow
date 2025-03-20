@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import final
 
 from mlflow.client import MlflowClient
 from mlflow.data.dataset_source import DatasetSource
@@ -10,30 +11,32 @@ from mlflow.tracking.context import registry as context_registry
 from mlflow.utils.mlflow_tags import MLFLOW_DATASET_CONTEXT, MLFLOW_RUN_NAME
 from typing_extensions import Any, override
 
-from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
+from mdata_flow.datasets_manager.composites import PdDataset
 from mdata_flow.datasets_manager.context import DsContext
-from mdata_flow.datasets_manager.visitors.typed_abs_visitor import TypedDatasetVisitor
+from mdata_flow.datasets_manager.visitors.nested_results_visitor import (
+    NestedResultsDatasetVisitor,
+)
 from mdata_flow.file_name_validator import FileNameValidator
 
 
-class ArtifactUploaderDatasetVisitor(TypedDatasetVisitor):
+class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
     """
     Загружает файлы датасетов на mlflow s3
     """
 
-    _results: dict[str, str] = {}
+    _client: MlflowClient
+
     _run: Run | None = None
 
     _experiment_id: str
     _run_name: str
-    _client: MlflowClient
-    _store_path: Path
 
-    _root_artifact_path: str | None = None
+    _store_path: Path
 
     def __init__(
         self, client: MlflowClient, cache_folder: str, experiment_id: str, run_name: str
     ) -> None:
+        super().__init__()
         self._client = client
 
         if not FileNameValidator.is_valid(run_name):
@@ -65,7 +68,25 @@ class ArtifactUploaderDatasetVisitor(TypedDatasetVisitor):
             return 0
 
     def check_need_update(self, digest: str) -> bool:
+        """
+        Проверяет необходимость обновления датасета на сервере
+        выполняет поиск по хэшу датасета.
+        Если датасет с хэшом найден, то обновлять не надо.
+        Если не найден - то надо.
+
+        Parameters
+        ----------
+        digest : str
+            Хэш датасета для поиска
+
+        Returns
+        -------
+        bool
+            Флаг показывающий нужно ли обновлять датасет или нет
+        """
         filter_string = (
+            # BUG: искать по информации о run и о датасете
+            # не выходит, так как ошибка в обработке mlflow сервера
             # f'attributes.run_name = "{self._run_name}" AND '
             f'dataset.digest = "{digest}" AND attributes.status = "FINISHED"'
         )
@@ -80,6 +101,15 @@ class ArtifactUploaderDatasetVisitor(TypedDatasetVisitor):
             return True
 
     def _get_or_create_run(self) -> Run:
+        """
+        Создаёт ран и настраивает ему тэги, если он ещё не активирован.
+
+        Returns
+        -------
+        run : Run
+            Новый или текущий run
+
+        """
         if not self._run:
             tags: dict[str, Any] = {}
             tags[MLFLOW_RUN_NAME] = self._run_name
@@ -104,12 +134,23 @@ class ArtifactUploaderDatasetVisitor(TypedDatasetVisitor):
             "num_elements": elem.count_cols,
         }
 
+    @property
+    def _dataset_path(self) -> str | None:
+        """"""
+        # Если нет ключей в списке, то вызваны без группы
+        if not len(self._current_ds_key_path):
+            return None
+        # Если есть ключ в списке, то базовый путь - datasets
+        # имя файла не указывается
+        return os.path.join("datasets", *self._current_ds_key_path[1:])
+
     @override
-    def VisitPdDataset(self, elem: PdDataset):
+    @final
+    def _visit_pd_dataset(self, elem: PdDataset) -> str | None:
         # Подразумевается, что датасет уже был перемещён в папку кэша
 
         if not self.check_need_update(elem.digest):
-            return
+            return None
 
         run = self._get_or_create_run()
 
@@ -120,12 +161,12 @@ class ArtifactUploaderDatasetVisitor(TypedDatasetVisitor):
         self._client.log_artifact(
             run_id=run.info.run_id,
             local_path=elem.file_path,
-            artifact_path=self._root_artifact_path,
+            artifact_path=self._dataset_path,
         )
 
         raw_source = os.path.join(
             artifact_uri,
-            str(self._root_artifact_path),
+            str(self._dataset_path),
             os.path.basename(elem.file_path),
         )
 
@@ -139,7 +180,7 @@ class ArtifactUploaderDatasetVisitor(TypedDatasetVisitor):
             predictions=elem.predictions,
         )
 
-        tags_to_log = []
+        tags_to_log: list[InputTag] = []
         if elem.context != DsContext.EMPTY:
             tags_to_log.append(
                 InputTag(key=MLFLOW_DATASET_CONTEXT, value=str(elem.context.value))
@@ -152,14 +193,4 @@ class ArtifactUploaderDatasetVisitor(TypedDatasetVisitor):
 
         self._client.log_inputs(run.info.run_id, [dataset_input])
 
-        self._results.update({elem.name: raw_source})
-
-    @override
-    def VisitGroupDataset(self, elem: GroupDataset):
-        self._root_artifact_path = "datasets"
-        for dataset in elem.datasets:
-            dataset.Accept(visitor=self)
-        self._root_artifact_path = None
-
-    def get_results(self):
-        return self._results
+        return raw_source
