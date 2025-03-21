@@ -1,22 +1,27 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from contextlib import contextmanager
+from functools import reduce
 from typing import final
 
 from mlflow import MlflowClient
 from mlflow.entities import Run
 from typing_extensions import override
 
-from mdata_flow.datasets_manager.composites import GroupDataset
+from mdata_flow.datasets_manager.composites import Dataset, GroupDataset
+from mdata_flow.datasets_manager.interfaces import IDataset
 from mdata_flow.datasets_manager.visitors.typed_abs_visitor import TypedDatasetVisitor
+from mdata_flow.types import NestedDict
 
 
 class ScopedABSUploaderVisitor(TypedDatasetVisitor, ABC):
     """
-    Загружает превью датасета
+    Абстрактный посетитель с возможностью указания scope.
+    Не сохраняет результаты в самом себе
     """
 
-    _work_scope: dict[str, str] | None = None
+    _work_scope: NestedDict[str | None] | None = None
+    _current_ds_key_path: list[str] = []
 
     _run: Run | None = None
     _client: MlflowClient | None = None
@@ -28,7 +33,7 @@ class ScopedABSUploaderVisitor(TypedDatasetVisitor, ABC):
     ) -> None:
         super().__init__()
 
-    def set_scope(self, value: dict[str, str]):
+    def set_scope(self, value: NestedDict[str | None]):
         """
         Устанавливает scope для выборки датасетов, к которым надо
         обработать доп инфу
@@ -49,11 +54,6 @@ class ScopedABSUploaderVisitor(TypedDatasetVisitor, ABC):
         """
         self._client = value
 
-    @contextmanager
-    @abstractmethod
-    def _manage_path(self, scope: str) -> Iterator[None]:
-        pass
-
     @property
     def run(self):
         """The run property."""
@@ -68,12 +68,35 @@ class ScopedABSUploaderVisitor(TypedDatasetVisitor, ABC):
         """
         self._run = value
 
+    @contextmanager
+    @abstractmethod
+    def _manage_path(self, elem: IDataset) -> Iterator[None]:
+        pass
+
+    def _check_need_process(self, elem: IDataset) -> bool:
+        if not self._work_scope:
+            return True
+
+        tmp_scope_link = self._work_scope
+        for key in self._current_ds_key_path:
+            value = tmp_scope_link[key]
+            if isinstance(value, str) and isinstance(elem, Dataset):
+                return True
+            if isinstance(value, dict):
+                if isinstance(elem, GroupDataset):
+                    return True
+                tmp_scope_link = value
+                continue
+            return False
+
+        return False
+
     @final
     @override
     def VisitGroupDataset(self, elem: GroupDataset):
         for value in elem.datasets:
-            with self._manage_path(value.name):
+            with self._manage_path(value):
                 # Если имени датасета нет в scope, то пропускаем его
-                if self._work_scope and value.name not in self._work_scope:
+                if not self._check_need_process(value):
                     continue
                 value.Accept(visitor=self)

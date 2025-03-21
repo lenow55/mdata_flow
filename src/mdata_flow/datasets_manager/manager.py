@@ -4,7 +4,7 @@ from functools import partial
 from mlflow.client import MlflowClient
 from mlflow.entities import Run
 from mlflow.store.artifact.artifact_repository_registry import (
-    _artifact_repository_registry,
+    _artifact_repository_registry,  # pyright: ignore[reportPrivateUsage]
 )
 from mlflow.store.artifact.optimized_s3_artifact_repo import (
     OptimizedS3ArtifactRepository,
@@ -21,6 +21,7 @@ from mdata_flow.datasets_manager.visitors import (
 from mdata_flow.datasets_manager.visitors.scoped_abs_info_uploader import (
     ScopedABSUploaderVisitor,
 )
+from mdata_flow.types import NestedDict
 
 
 def get_or_create_experiment(
@@ -39,14 +40,14 @@ def get_or_create_experiment(
 
 class DatasetManager:
     _saver: DatasetVisitor
-    _upload_results: dict[str, str] = {}
+    _upload_results: NestedDict[str | None] = {}
     _dataset_composite: IDataset | None = None
 
     def __init__(self, config: DatasetStoreSettings, saver: DatasetVisitor) -> None:
         self.config: DatasetStoreSettings = config
         self._experiment_id: str | None = None
         self._actual_run: Run | None = None
-        self._client = MlflowClient(tracking_uri=config.tracking_uri)
+        self._client: MlflowClient = MlflowClient(tracking_uri=config.tracking_uri)
         self._saver = saver
 
     def setup(self):

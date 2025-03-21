@@ -1,14 +1,16 @@
+from io import BufferedIOBase
 from unittest.mock import patch
 
 import pandas as pd
 import pytest
 
 from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
+from mdata_flow.datasets_manager.interfaces import IDataset
 from mdata_flow.datasets_manager.visitors import XXHDigestDatasetVisitor
 from mdata_flow.types import NestedDict
 
 
-def fake_xxhash(file):
+def fake_xxhash(file: str | BufferedIOBase):
     return f"fake_hash_{file}" if isinstance(file, str) else "fake_hash_buffer"
 
 
@@ -72,11 +74,18 @@ root2_group = GroupDataset(
                 },
                 "file3.csv": "fake_hash_file3.csv",
             },
-            id="test_xxh_digest_visitor_flat",
+            id="test_xxh_digest_visitor_2_nested",
+        ),
+        pytest.param(
+            dataset1,
+            {
+                "file1.csv": "fake_hash_file1.csv",
+            },
+            id="test_xxh_digest_visitor_no_groups",
         ),
     ],
 )
-def test_xxhdigest_nested(in_composite: GroupDataset, expected_result: NestedDict):
+def test_xxhdigest_nested(in_composite: IDataset, expected_result: NestedDict[str]):
     visitor = XXHDigestDatasetVisitor()
 
     with patch.object(

@@ -1,3 +1,4 @@
-from typing import TypeAlias, Union
+from typing import TypeAlias, TypeVar, Union
 
-NestedDict: TypeAlias = dict[str, Union[str, "NestedDict"]]
+T = TypeVar("T")
+NestedDict: TypeAlias = dict[str, Union[T, "NestedDict[T]"]]
