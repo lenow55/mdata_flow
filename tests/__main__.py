@@ -27,22 +27,26 @@ def main():
     print(ds_config.model_dump_json(indent=2))
     full_df = pd.read_csv("eval_data.csv")
 
-    train = full_df.sample(frac=0.8, random_state=47)
+    train = full_df.sample(frac=0.8, random_state=41)
+    train1 = train.sample(frac=0.5, random_state=40)
+    train2 = train.drop(train1.index)
     # немного изменим обучающий сет
-    test = full_df.drop(
-        train.index  ##pyright: ignore[reportCallIssue,reportArgumentType]
-    )
+    test = full_df.drop(train.index)
 
     train = train[:-10]
 
-    if not isinstance(test, pd.DataFrame):
-        raise RuntimeError("Bad test DataFrame")
-
-    if not isinstance(train, pd.DataFrame):
-        raise RuntimeError("Bad train DataFrame")
-
     datasets: list[IDataset] = [
-        PdDataset("df_train", train, targets="label", context=DsContext.TRAIN),
+        GroupDataset(
+            "df_train_group",
+            [
+                PdDataset(
+                    "df_train1", train1, targets="label", context=DsContext.TRAIN
+                ),
+                PdDataset(
+                    "df_train2", train2, targets="label", context=DsContext.TRAIN
+                ),
+            ],
+        ),
         PdDataset("df_test", test, targets="label", context=DsContext.TEST),
     ]
     composite = GroupDataset(name="test-group", datasets=datasets)
@@ -50,7 +54,7 @@ def main():
 
     manager = DatasetManager(ds_config, saver_v)
     manager.setup()
-    result = manager.register_datasets(composite, run_name="test-upload")
+    result = manager.register_datasets(composite, run_name="test-upload-2")
 
     if result:
         print(manager.get_results())
