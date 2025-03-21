@@ -1,12 +1,13 @@
+import os
 from collections.abc import Iterator
 from contextlib import contextmanager
-import os
 from typing import final
+
 from mlflow import MlflowClient
-from mlflow.entities import Run
 from typing_extensions import override
 
 from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
+from mdata_flow.datasets_manager.interfaces import IDataset
 from mdata_flow.datasets_manager.visitors.scoped_abs_info_uploader import (
     ScopedABSUploaderVisitor,
 )
@@ -30,11 +31,18 @@ class PreviewUploaderVisitor(ScopedABSUploaderVisitor):
 
     @final
     @contextmanager
-    def _manage_path(self, scope: str) -> Iterator[None]:
+    def _manage_path(self, elem: IDataset) -> Iterator[None]:
         try:
+            if isinstance(elem, GroupDataset):
+                self._root_artifact_path = os.path.join(
+                    self._root_artifact_path, elem.name
+                )
+            self._current_ds_key_path.append(elem.name)
             yield
         finally:
-            pass
+            if isinstance(elem, GroupDataset):
+                self._root_artifact_path = os.path.dirname(self._root_artifact_path)
+            _ = self._current_ds_key_path.pop()
 
     @final
     @override

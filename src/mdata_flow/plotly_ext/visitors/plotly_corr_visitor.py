@@ -10,6 +10,7 @@ from mdata_flow.datasets_manager.visitors.utils import FigureArtifact
 from mdata_flow.plotly_ext.func_library import plot_correlation_matrix
 
 
+@final
 class PlotlyCorrVisitor(FigureVisitor):
     """
     Рассчитывает матрицу корелляций для датасетов
