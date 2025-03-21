@@ -142,7 +142,7 @@ class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
             return None
         # Если есть ключ в списке, то базовый путь - datasets
         # имя файла не указывается
-        return os.path.join("datasets", *self._current_ds_key_path[1:])
+        return os.path.join("datasets", *self._current_ds_key_path[:-1])
 
     @override
     @final
