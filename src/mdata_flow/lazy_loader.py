@@ -1,7 +1,7 @@
 import importlib
 import types
 
-from typing import Any, override
+from typing_extensions import Any, override
 
 
 class LazyLoader:
@@ -29,23 +29,3 @@ class LazyLoader:
         """Позволяет корректно работать с функциями типа dir()."""
         module = self._load_module()
         return dir(module)
-
-
-# class LazyLoader:
-#     "thin shell class to wrap modules.  load real module on first access and pass thru"
-#
-#     def __init__(self, modname: str):
-#         self._modname: str = modname
-#         self._mod: Any | None = None
-#
-#     def __getattr__(self, attr: Any):
-#         "import module on first attribute access"
-#
-#         try:
-#             return getattr(self._mod, attr)
-#
-#         except Exception as e:
-#             if self._mod is None:
-#                 self._mod = importlib.import_module(self._modname)
-#             else:
-#                 raise e
