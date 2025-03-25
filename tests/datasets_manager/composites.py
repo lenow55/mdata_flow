@@ -33,6 +33,7 @@ class MockPdDataset(Dataset):
     @override
     def Accept(self, visitor: DatasetVisitor) -> None:
         visitor.Visit(self)
+        print(type(visitor))
 
     def getDataset(self) -> pd.DataFrame:
         return self._dataset
