@@ -1,11 +1,13 @@
 from unittest.mock import MagicMock
+
 import pytest
+from mlflow import MlflowClient
 
 from mdata_flow.datasets_manager.visitors import ArtifactUploaderDatasetVisitor
 
 
 class TestDatasetArtifactUploader:
-    client = MagicMock()
+    client: MlflowClient = MagicMock(spec=MlflowClient)
 
     @pytest.mark.parametrize(
         "keys_list, exp_result",
