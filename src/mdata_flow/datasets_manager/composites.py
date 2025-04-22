@@ -22,23 +22,24 @@ class Dataset(IDataset, ABC):
         должно быть уникально в группе датасетов
         в конце логируется в имя log_input
 
-    count_cols: (`int`, *optional*, defaults to 0)
-        Количество колонок в датасете
-        может быть рассчитано в дочернем классе
+    schema: (`mlflow.types.schema.Schema`, *required*)
+        Схема датасета полученная из mlflow
 
-    count_rows: (`int`, *optional*, defaults to 0)
-        Количество строк в датасете
-        может быть рассчитано в дочернем классе
+    targets: (`str`, *optional*, defaults to None)
+        Имя колонки с целевой меткой, может быть не указано
+
+    predictions: (`str`, *optional*, defaults to 0)
+        Имя колонки с прогнозом целевой метки, может быть не указано
+
+    context: (`mdata_flow.datasets_manager.context.DsContext`, *optional*, defaults to DsContext.EMPTY)
+        Контекст использования датасета: Обучение, тест, валидация, пустой
 
     Returns
     -------
 
     """
 
-    # временный файл перед расчётом digest
-    _temp_file: str | None = None
-    # тип файла и путь до файла в кэше
-    _file_type: str | None = None
+    # путь до файла в кэше
     _file_path: str | None = None
 
     # Хэш сумма датасета
@@ -46,19 +47,24 @@ class Dataset(IDataset, ABC):
 
     # Схема датасета извлечённая при помощи mlflow
     schema: Schema
+    targets: str | None
+    predictions: str | None
+    context: DsContext
 
     def __init__(
         self,
         name: str,
         schema: Schema,
-        count_cols: int = 0,
-        count_rows: int = 0,
+        targets: str | None = None,
+        predictions: str | None = None,
+        context: DsContext = DsContext.EMPTY,
     ):
         super().__init__()
         self.name: str = name
-        self._count_cols: int = count_cols
-        self._count_rows: int = count_rows
         self.schema = schema
+        self.targets = targets
+        self.predictions = predictions
+        self.context = context
 
     @property
     def digest(self):
@@ -72,17 +78,6 @@ class Dataset(IDataset, ABC):
         self._digest = value
 
     @property
-    def temp_path(self):
-        """Temp file path"""
-        if not self._temp_file:
-            raise RuntimeError("Save file before")
-        return self._temp_file
-
-    @temp_path.setter
-    def temp_path(self, value: str):
-        self._temp_file = value
-
-    @property
     def file_path(self):
         """File path"""
         if not self._file_path:
@@ -92,35 +87,6 @@ class Dataset(IDataset, ABC):
     @file_path.setter
     def file_path(self, value: str):
         self._file_path = value
-
-    @property
-    def count_cols(self):
-        """Count cols for df"""
-        return self._count_cols
-
-    @count_cols.setter
-    def count_cols(self, value: int):
-        self._count_cols = value
-
-    @property
-    def count_rows(self):
-        """Count cols for df"""
-        return self._count_rows
-
-    @count_rows.setter
-    def count_rows(self, value: int):
-        self._count_rows = value
-
-    @property
-    def file_type(self):
-        """File path"""
-        if not self._file_type:
-            raise RuntimeError("Save file before")
-        return self._file_type
-
-    @file_type.setter
-    def file_type(self, value: str):
-        self._file_type = value
 
 
 # Concrete Dataset classes
@@ -146,16 +112,14 @@ class PdDataset(Dataset):
         predictions: str | None = None,
         context: DsContext = DsContext.EMPTY,
     ):
+        self._dataset: pd.DataFrame = dataset
         super().__init__(
             name=name,
             schema=_infer_schema(dataset),
-            count_cols=dataset.shape[1],
-            count_rows=dataset.shape[0],
+            targets=targets,
+            predictions=predictions,
+            context=context,
         )
-        self._dataset: pd.DataFrame = dataset
-        self.targets: str | None = targets
-        self.predictions: str | None = predictions
-        self.context: DsContext = context
 
     @override
     def Accept(self, visitor: DatasetVisitor) -> None:
