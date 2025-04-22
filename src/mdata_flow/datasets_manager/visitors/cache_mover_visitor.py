@@ -5,13 +5,14 @@ from pathlib import Path
 from typing_extensions import override
 
 from mdata_flow.datasets_manager.composites import PdDataset
-from mdata_flow.datasets_manager.visitors.nested_results_visitor import (
-    NestedResultsDatasetVisitor,
+from mdata_flow.datasets_manager.visitors.nested_visitor import (
+    NestedDatasetVisitor,
 )
+from mdata_flow.datasets_manager.visitors.utils import FileResult
 from mdata_flow.file_name_validator import FileNameValidator
 
 
-class CacheMoverDatasetVisitor(NestedResultsDatasetVisitor[str]):
+class CacheMoverDatasetVisitor(NestedDatasetVisitor[FileResult, str]):
     """
     Перемещает файлы датасетов в директорию кэша
     """
@@ -29,10 +30,22 @@ class CacheMoverDatasetVisitor(NestedResultsDatasetVisitor[str]):
 
     @override
     def _visit_pd_dataset(self, elem: PdDataset) -> str:
-        store_dataset_path = Path(self._store_path, f"{elem.digest}.{elem.file_type}")
-        # INFO: Проверка на samefile не работает, так как файл
-        # после перемещения уже недоступен по temp_path
+        file_info = self._params_tmp_link.get(elem.name)
+        if not file_info or isinstance(file_info, dict):
+            raise RuntimeError(f"File was not saved, bad params {self._params}")
+
+        store_dataset_path = Path(
+            self._store_path, f"{elem.digest}.{file_info.file_type}"
+        )
+
         if not os.path.exists(store_dataset_path):
-            shutil.move(elem.temp_path, store_dataset_path)
+            try:
+                if os.path.samefile(file_info.file_path, store_dataset_path):
+                    raise RuntimeError(
+                        f"same files: {file_info.file_path} - {store_dataset_path}"
+                    )
+            except OSError:
+                pass
+            _ = shutil.move(file_info.file_path, store_dataset_path)
         elem.file_path = store_dataset_path.as_posix()
         return store_dataset_path.as_posix()

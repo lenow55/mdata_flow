@@ -13,13 +13,13 @@ from typing_extensions import Any, override
 
 from mdata_flow.datasets_manager.composites import PdDataset
 from mdata_flow.datasets_manager.context import DsContext
-from mdata_flow.datasets_manager.visitors.nested_results_visitor import (
-    NestedResultsDatasetVisitor,
+from mdata_flow.datasets_manager.visitors.nested_visitor import (
+    NestedDatasetVisitor,
 )
 from mdata_flow.file_name_validator import FileNameValidator
 
 
-class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
+class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[str, str | None]):
     """
     Загружает файлы датасетов на mlflow s3
     """
@@ -130,8 +130,8 @@ class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
         A profile of the dataset. May be ``None`` if a profile cannot be computed.
         """
         return {
-            "num_rows": elem.count_rows,
-            "num_elements": elem.count_cols,
+            "num_rows": elem.getDataset().shape[0],
+            "num_elements": elem.getDataset().shape[1],
         }
 
     @property
