@@ -27,7 +27,7 @@ packages = [{ include = "mdata_flow", from = "src" }]
 
 
 [tool.poetry.group.dev.dependencies]
-pylint = "^3.3.4"
+pylint = "^3.3.6"
 pytest = "^8.3.5"
 allure-pytest = "^2.13.5"
 pandas-stubs = "^2.2.3.250308"
