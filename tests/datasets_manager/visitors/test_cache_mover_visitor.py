@@ -10,6 +10,7 @@ import pytest
 from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
 from mdata_flow.datasets_manager.interfaces import IDataset
 from mdata_flow.datasets_manager.visitors import CacheMoverDatasetVisitor
+from mdata_flow.datasets_manager.visitors.utils import FileResult
 from mdata_flow.types import NestedDict
 
 
@@ -17,19 +18,14 @@ def create_dataset(name: str) -> PdDataset:
     dataset = PdDataset(
         name=name, dataset=pd.DataFrame(data=[1, 2], columns=pd.Index(["1"]))
     )
-    dataset.temp_path = NamedTemporaryFile(delete=False).name
+    dataset_file_info = FileResult(
+        file_path=NamedTemporaryFile(delete=False).name, file_type="csv"
+    )
     dataset.digest = dataset.name
-    dataset.file_type = "csv"
     return dataset
 
 
 dataset1 = create_dataset("file1")
-
-
-@pytest.fixture()
-def cache_dir() -> Generator[str, None, None]:
-    with TemporaryDirectory() as tempdir:
-        yield tempdir
 
 
 @pytest.mark.parametrize(
@@ -108,8 +104,9 @@ def test_cache_mover_visitor(
     expected_result: NestedDict[str],
     expected_dir_content: list[str],
     run_name: str,
-    cache_dir: str,
+    tmp_path_factory: pytest.TempPathFactory,
 ):
+    cache_dir = tmp_path_factory.mktemp(basename="cache")
     visitor = CacheMoverDatasetVisitor(cache_folder=cache_dir, store_run_name=run_name)
 
     in_composite.Accept(visitor)
