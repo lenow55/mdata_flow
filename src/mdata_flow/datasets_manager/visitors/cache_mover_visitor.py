@@ -20,7 +20,7 @@ class CacheMoverDatasetVisitor(NestedDatasetVisitor[FileResult, str]):
     # Результаты перемещения, заносятся все пути датасетов
     # решение загружать или нет принимает загрузчик
 
-    def __init__(self, cache_folder: str, store_run_name: str) -> None:
+    def __init__(self, cache_folder: str | Path, store_run_name: str) -> None:
         super().__init__()
         if not FileNameValidator.is_valid(store_run_name):
             store_run_name = FileNameValidator.sanitize(store_run_name)
