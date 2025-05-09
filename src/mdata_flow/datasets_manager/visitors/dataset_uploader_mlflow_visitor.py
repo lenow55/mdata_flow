@@ -84,21 +84,25 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[str, str | None]):
         bool
             Флаг показывающий нужно ли обновлять датасет или нет
         """
+        # INFO: запрашиваем список run-ов с определённым именем
+        # далее ищем по хэшам датасетов
         filter_string = (
             # BUG: искать по информации о run и о датасете
             # не выходит, так как ошибка в обработке mlflow сервера
-            # f'attributes.run_name = "{self._run_name}" AND '
-            f'dataset.digest = "{digest}" AND attributes.status = "FINISHED"'
+            f'attributes.run_name = "{self._run_name}" AND '
+            f'attributes.status = "FINISHED"'
         )
+        # dataset.digest = "{digest}" AND
         runs = self._client.search_runs(
             experiment_ids=[self._experiment_id],
             filter_string=filter_string,
         )
-        try:
-            _ = runs[0]
-            return False
-        except IndexError:
-            return True
+
+        for run in runs:
+            for dataset_in in run.inputs.dataset_inputs:
+                if dataset_in.dataset.digest == digest:
+                    return False
+        return True
 
     def _get_or_create_run(self) -> Run:
         """
