@@ -1,6 +1,4 @@
-from _typeshed import StrPath
 from abc import ABC
-from os import PathLike
 from pathlib import Path
 from typing import final
 
@@ -9,8 +7,8 @@ from mlflow.types.schema import Schema
 from mlflow.types.utils import _infer_schema  # pyright: ignore[reportPrivateUsage]
 from typing_extensions import override
 
-from mdata_flow.datasets_manager.interfaces import DatasetVisitor, IDataset
 from mdata_flow.datasets_manager.context import DsContext
+from mdata_flow.datasets_manager.interfaces import DatasetVisitor, IDataset
 
 
 # Abstract Dataset class
