@@ -100,7 +100,7 @@ class TestArtifactUploaderDatasetVisitor:
         self, visitor: ArtifactUploaderDatasetVisitor, mock_client: MagicMock
     ):
         mock_run = MagicMock(spec=Run)
-        mock_run.info.artifact_uri = "artifact_uri"
+        mock_run.info.artifact_uri = "s3://artifact_uri"
         mock_run.info.run_id = "test_run_id"
         visitor._get_or_create_run = MagicMock(return_value=mock_run)
 
@@ -115,12 +115,7 @@ class TestArtifactUploaderDatasetVisitor:
         result = visitor.get_results()
 
         assert isinstance(result, dict)
-        expected_result = {
-            pd_dataset.name: os.path.join(
-                "artifact_uri", "datasets", os.path.basename("test_digest.csv")
-            )
-        }
-        assert result == expected_result
+        assert result == {"test_data": "s3://artifact_uri/datasets/test_digest.csv"}
 
         # Existing assertions for other functionality
         mock_client.log_artifact.assert_called_once_with(
