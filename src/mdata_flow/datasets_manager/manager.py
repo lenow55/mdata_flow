@@ -9,10 +9,10 @@ from mlflow.store.artifact.artifact_repository_registry import (
 from mlflow.store.artifact.optimized_s3_artifact_repo import (
     OptimizedS3ArtifactRepository,
 )
-from typing_extensions import Any
 
 from mdata_flow.config import DatasetStoreSettings
 from mdata_flow.datasets_manager.interfaces import IDataset
+from mdata_flow.datasets_manager.utils import get_or_create_experiment
 from mdata_flow.datasets_manager.visitors import (
     ArtifactUploaderDatasetVisitor,
     CacheMoverDatasetVisitor,
@@ -24,20 +24,6 @@ from mdata_flow.datasets_manager.visitors.scoped_abs_info_uploader import (
 )
 from mdata_flow.datasets_manager.visitors.utils import FileResult
 from mdata_flow.types import NestedDict
-
-
-def get_or_create_experiment(
-    client: MlflowClient,
-    experiment_name: str,
-    artifact_location: str | None = None,
-    tags: dict[str, Any] | None = None,
-):
-    if experiment := client.get_experiment_by_name(experiment_name):
-        if isinstance(experiment.experiment_id, str):
-            return experiment.experiment_id
-        raise RuntimeError("Bad experiment_id type")
-    else:
-        return client.create_experiment(experiment_name, artifact_location, tags)
 
 
 class DatasetManager:
