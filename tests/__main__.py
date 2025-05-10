@@ -54,7 +54,7 @@ def main():
 
     manager = DatasetManager(ds_config, saver_v)
     manager.setup()
-    result = manager.register_datasets(composite, run_name="test-upload-2")
+    result = manager.register_datasets(composite, run_name="test-upload-3")
 
     if result:
         print(manager.get_results())

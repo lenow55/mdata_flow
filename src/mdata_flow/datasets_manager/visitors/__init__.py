@@ -16,6 +16,9 @@ from mdata_flow.datasets_manager.visitors.preview_uploader_visitor import (
 from mdata_flow.datasets_manager.visitors.xxh_digest_visitor import (
     XXHDigestDatasetVisitor,
 )
+from mdata_flow.datasets_manager.visitors.nested_visitor import (
+    NestedDatasetVisitor,
+)
 
 
 __all__ = [
@@ -25,4 +28,5 @@ __all__ = [
     "ArtifactUploaderDatasetVisitor",
     "FigureVisitor",
     "PreviewUploaderVisitor",
+    "NestedDatasetVisitor",
 ]

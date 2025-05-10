@@ -1,15 +1,16 @@
 from io import BufferedIOBase
-from typing_extensions import override
 
 import xxhash
+from typing_extensions import override
 
 from mdata_flow.datasets_manager.composites import PdDataset
-from mdata_flow.datasets_manager.visitors.nested_results_visitor import (
-    NestedResultsDatasetVisitor,
+from mdata_flow.datasets_manager.visitors.nested_visitor import (
+    NestedDatasetVisitor,
 )
+from mdata_flow.datasets_manager.visitors.utils import FileResult
 
 
-class XXHDigestDatasetVisitor(NestedResultsDatasetVisitor[str]):
+class XXHDigestDatasetVisitor(NestedDatasetVisitor[FileResult, FileResult]):
     def __init__(self) -> None:
         super().__init__()
 
@@ -28,7 +29,10 @@ class XXHDigestDatasetVisitor(NestedResultsDatasetVisitor[str]):
         return str_hash.hexdigest()
 
     @override
-    def _visit_pd_dataset(self, elem: PdDataset) -> str:
-        digest = self._compute_xxhash(elem.temp_path)
+    def _visit_pd_dataset(self, elem: PdDataset) -> FileResult:
+        file_info = self._params_tmp_link.get(elem.name)
+        if not file_info or isinstance(file_info, dict):
+            raise RuntimeError(f"File was not saved, bad params {self._params}")
+        digest = self._compute_xxhash(file_info.file_path)
         elem.digest = digest
-        return digest
+        return file_info

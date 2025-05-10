@@ -13,13 +13,13 @@ from typing_extensions import Any, override
 
 from mdata_flow.datasets_manager.composites import PdDataset
 from mdata_flow.datasets_manager.context import DsContext
-from mdata_flow.datasets_manager.visitors.nested_results_visitor import (
-    NestedResultsDatasetVisitor,
+from mdata_flow.datasets_manager.visitors.nested_visitor import (
+    NestedDatasetVisitor,
 )
 from mdata_flow.file_name_validator import FileNameValidator
 
 
-class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
+class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[Path, str | None]):
     """
     Загружает файлы датасетов на mlflow s3
     """
@@ -31,8 +31,6 @@ class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
     _experiment_id: str
     _run_name: str
 
-    _store_path: Path
-
     def __init__(
         self, client: MlflowClient, cache_folder: str, experiment_id: str, run_name: str
     ) -> None:
@@ -43,7 +41,6 @@ class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
             run_name = FileNameValidator.sanitize(run_name)
         self._run_name = run_name
 
-        self._store_path = Path(cache_folder, run_name)
         self._experiment_id = experiment_id
 
     def get_run(self):
@@ -84,21 +81,25 @@ class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
         bool
             Флаг показывающий нужно ли обновлять датасет или нет
         """
+        # INFO: запрашиваем список run-ов с определённым именем
+        # далее ищем по хэшам датасетов
         filter_string = (
             # BUG: искать по информации о run и о датасете
             # не выходит, так как ошибка в обработке mlflow сервера
-            # f'attributes.run_name = "{self._run_name}" AND '
-            f'dataset.digest = "{digest}" AND attributes.status = "FINISHED"'
+            f'attributes.run_name = "{self._run_name}" AND '
+            f'attributes.status = "FINISHED"'
         )
+        # dataset.digest = "{digest}" AND
         runs = self._client.search_runs(
             experiment_ids=[self._experiment_id],
             filter_string=filter_string,
         )
-        try:
-            _ = runs[0]
-            return False
-        except IndexError:
-            return True
+
+        for run in runs:
+            for dataset_in in run.inputs.dataset_inputs:
+                if dataset_in.dataset.digest == digest:
+                    return False
+        return True
 
     def _get_or_create_run(self) -> Run:
         """
@@ -130,19 +131,16 @@ class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
         A profile of the dataset. May be ``None`` if a profile cannot be computed.
         """
         return {
-            "num_rows": elem.count_rows,
-            "num_elements": elem.count_cols,
+            "num_rows": elem.getDataset().shape[0],
+            "num_elements": elem.getDataset().shape[1],
         }
 
     @property
     def _dataset_path(self) -> str | None:
         """"""
-        # Если нет ключей в списке, то вызваны без группы
-        if not len(self._current_ds_key_path):
-            return None
-        # Если есть ключ в списке, то базовый путь - datasets
-        # имя файла не указывается
-        return os.path.join("datasets", *self._current_ds_key_path[:-1])
+        # группа указывается только при наличии двух элементов
+        path = Path("datasets", *self._current_ds_key_path[:-1])
+        return path.as_posix()  # Для POSIX-строки или path для Path-объекта
 
     @override
     @final
@@ -164,10 +162,13 @@ class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
             artifact_path=self._dataset_path,
         )
 
-        raw_source = os.path.join(
-            artifact_uri,
-            str(self._dataset_path),
-            os.path.basename(elem.file_path),
+        raw_source = (
+            artifact_uri.rstrip("/")
+            + "/"
+            + Path(
+                str(self._dataset_path),
+                os.path.basename(elem.file_path),
+            ).as_posix()
         )
 
         source: DatasetSource = resolve_dataset_source(raw_source)
