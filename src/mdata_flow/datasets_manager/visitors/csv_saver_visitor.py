@@ -1,13 +1,18 @@
 import tempfile
 
-from pandas._typing import CompressionOptions
+from pandas._typing import (
+    CompressionOptions,  # pyright: ignore[reportPrivateImportUsage]
+)
 from typing_extensions import override
 
-from mdata_flow.datasets_manager.composites import GroupDataset, PdDataset
-from mdata_flow.datasets_manager.visitors.typed_abs_visitor import TypedDatasetVisitor
+from mdata_flow.datasets_manager.composites import PdDataset
+from mdata_flow.datasets_manager.visitors.nested_visitor import (
+    NestedDatasetVisitor,
+)
+from mdata_flow.datasets_manager.visitors.utils import FileResult
 
 
-class CSVSaverDatasetVisitor(TypedDatasetVisitor):
+class CSVSaverDatasetVisitor(NestedDatasetVisitor[None, FileResult]):
     """
     Сохраняет файлики CSV во временную директорию
     Результаты прям в объект датасета пишет
@@ -19,20 +24,16 @@ class CSVSaverDatasetVisitor(TypedDatasetVisitor):
         self._compression: CompressionOptions = compression
 
     @override
-    def VisitPdDataset(self, elem: PdDataset):
+    def _visit_pd_dataset(self, elem: PdDataset) -> FileResult:
         temp_file = tempfile.NamedTemporaryFile(delete=False)
         df = elem.getDataset()
         _ = df.to_csv(temp_file, compression=self._compression)
         temp_file.flush()
-        elem.temp_path = temp_file.name
-        elem.file_type = "csv"
+        file_type = "csv"
         if self._compression != "infer":
             if isinstance(self._compression, dict):
-                elem.file_type = elem.file_type + f".{self._compression['method']}"
+                file_type = file_type + f".{self._compression['method']}"
             else:
-                elem.file_type = elem.file_type + f".{self._compression}"
-
-    @override
-    def VisitGroupDataset(self, elem: GroupDataset):
-        for value in elem.datasets:
-            value.Accept(visitor=self)
+                file_type = file_type + f".{self._compression}"
+        result = FileResult(file_path=temp_file.name, file_type=file_type)
+        return result

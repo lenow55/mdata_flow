@@ -13,13 +13,13 @@ from typing_extensions import Any, override
 
 from mdata_flow.datasets_manager.composites import PdDataset
 from mdata_flow.datasets_manager.context import DsContext
-from mdata_flow.datasets_manager.visitors.nested_results_visitor import (
-    NestedResultsDatasetVisitor,
+from mdata_flow.datasets_manager.visitors.nested_visitor import (
+    NestedDatasetVisitor,
 )
 from mdata_flow.file_name_validator import FileNameValidator
 
 
-class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
+class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[str, str | None]):
     """
     Загружает файлы датасетов на mlflow s3
     """
@@ -84,21 +84,25 @@ class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
         bool
             Флаг показывающий нужно ли обновлять датасет или нет
         """
+        # INFO: запрашиваем список run-ов с определённым именем
+        # далее ищем по хэшам датасетов
         filter_string = (
             # BUG: искать по информации о run и о датасете
             # не выходит, так как ошибка в обработке mlflow сервера
-            # f'attributes.run_name = "{self._run_name}" AND '
-            f'dataset.digest = "{digest}" AND attributes.status = "FINISHED"'
+            f'attributes.run_name = "{self._run_name}" AND '
+            f'attributes.status = "FINISHED"'
         )
+        # dataset.digest = "{digest}" AND
         runs = self._client.search_runs(
             experiment_ids=[self._experiment_id],
             filter_string=filter_string,
         )
-        try:
-            _ = runs[0]
-            return False
-        except IndexError:
-            return True
+
+        for run in runs:
+            for dataset_in in run.inputs.dataset_inputs:
+                if dataset_in.dataset.digest == digest:
+                    return False
+        return True
 
     def _get_or_create_run(self) -> Run:
         """
@@ -130,18 +134,14 @@ class ArtifactUploaderDatasetVisitor(NestedResultsDatasetVisitor[str | None]):
         A profile of the dataset. May be ``None`` if a profile cannot be computed.
         """
         return {
-            "num_rows": elem.count_rows,
-            "num_elements": elem.count_cols,
+            "num_rows": elem.getDataset().shape[0],
+            "num_elements": elem.getDataset().shape[1],
         }
 
     @property
     def _dataset_path(self) -> str | None:
         """"""
-        # Если нет ключей в списке, то вызваны без группы
-        if not len(self._current_ds_key_path):
-            return None
-        # Если есть ключ в списке, то базовый путь - datasets
-        # имя файла не указывается
+        # группа указывается только при наличии двух элементов
         return os.path.join("datasets", *self._current_ds_key_path[:-1])
 
     @override
