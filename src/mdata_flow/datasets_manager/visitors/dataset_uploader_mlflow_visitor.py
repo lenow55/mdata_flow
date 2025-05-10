@@ -84,21 +84,25 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[str, str | None]):
         bool
             Флаг показывающий нужно ли обновлять датасет или нет
         """
+        # INFO: запрашиваем список run-ов с определённым именем
+        # далее ищем по хэшам датасетов
         filter_string = (
             # BUG: искать по информации о run и о датасете
             # не выходит, так как ошибка в обработке mlflow сервера
-            # f'attributes.run_name = "{self._run_name}" AND '
-            f'dataset.digest = "{digest}" AND attributes.status = "FINISHED"'
+            f'attributes.run_name = "{self._run_name}" AND '
+            f'attributes.status = "FINISHED"'
         )
+        # dataset.digest = "{digest}" AND
         runs = self._client.search_runs(
             experiment_ids=[self._experiment_id],
             filter_string=filter_string,
         )
-        try:
-            _ = runs[0]
-            return False
-        except IndexError:
-            return True
+
+        for run in runs:
+            for dataset_in in run.inputs.dataset_inputs:
+                if dataset_in.dataset.digest == digest:
+                    return False
+        return True
 
     def _get_or_create_run(self) -> Run:
         """
@@ -137,11 +141,7 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[str, str | None]):
     @property
     def _dataset_path(self) -> str | None:
         """"""
-        # Если нет ключей в списке, то вызваны без группы
-        if not len(self._current_ds_key_path):
-            return None
-        # Если есть ключ в списке, то базовый путь - datasets
-        # имя файла не указывается
+        # группа указывается только при наличии двух элементов
         return os.path.join("datasets", *self._current_ds_key_path[:-1])
 
     @override
