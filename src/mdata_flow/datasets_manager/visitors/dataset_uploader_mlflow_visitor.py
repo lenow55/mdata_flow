@@ -141,11 +141,7 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[str, str | None]):
     @property
     def _dataset_path(self) -> str | None:
         """"""
-        # Если нет ключей в списке, то вызваны без группы
-        if not len(self._current_ds_key_path):
-            return None
-        # Если есть ключ в списке, то базовый путь - datasets
-        # имя файла не указывается
+        # группа указывается только при наличии двух элементов
         return os.path.join("datasets", *self._current_ds_key_path[:-1])
 
     @override
