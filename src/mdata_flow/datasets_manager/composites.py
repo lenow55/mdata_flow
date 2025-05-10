@@ -1,4 +1,5 @@
 from abc import ABC
+from pathlib import Path
 from typing import final
 
 import pandas as pd
@@ -6,8 +7,8 @@ from mlflow.types.schema import Schema
 from mlflow.types.utils import _infer_schema  # pyright: ignore[reportPrivateUsage]
 from typing_extensions import override
 
-from mdata_flow.datasets_manager.interfaces import DatasetVisitor, IDataset
 from mdata_flow.datasets_manager.context import DsContext
+from mdata_flow.datasets_manager.interfaces import DatasetVisitor, IDataset
 
 
 # Abstract Dataset class
@@ -40,7 +41,7 @@ class Dataset(IDataset, ABC):
     """
 
     # путь до файла в кэше
-    _file_path: str | None = None
+    _file_path: Path | None = None
 
     # Хэш сумма датасета
     _digest: str | None = None
@@ -85,7 +86,7 @@ class Dataset(IDataset, ABC):
         return self._file_path
 
     @file_path.setter
-    def file_path(self, value: str):
+    def file_path(self, value: Path):
         self._file_path = value
 
 
