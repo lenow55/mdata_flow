@@ -162,13 +162,9 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[Path, str | None]):
             artifact_path=self._dataset_path,
         )
 
-        temp_buf = ""
-        if not artifact_uri.endswith("/"):
-            temp_buf = "/"
-
         raw_source = (
-            artifact_uri
-            + temp_buf
+            artifact_uri.rstrip("/")
+            + "/"
             + Path(
                 str(self._dataset_path),
                 os.path.basename(elem.file_path),
