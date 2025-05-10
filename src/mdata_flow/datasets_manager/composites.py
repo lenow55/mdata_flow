@@ -1,4 +1,7 @@
+from _typeshed import StrPath
 from abc import ABC
+from os import PathLike
+from pathlib import Path
 from typing import final
 
 import pandas as pd
@@ -40,7 +43,7 @@ class Dataset(IDataset, ABC):
     """
 
     # путь до файла в кэше
-    _file_path: str | None = None
+    _file_path: Path | None = None
 
     # Хэш сумма датасета
     _digest: str | None = None
@@ -85,7 +88,7 @@ class Dataset(IDataset, ABC):
         return self._file_path
 
     @file_path.setter
-    def file_path(self, value: str):
+    def file_path(self, value: Path):
         self._file_path = value
 
 

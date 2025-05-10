@@ -12,7 +12,7 @@ from mdata_flow.datasets_manager.visitors.utils import FileResult
 from mdata_flow.file_name_validator import FileNameValidator
 
 
-class CacheMoverDatasetVisitor(NestedDatasetVisitor[FileResult, str]):
+class CacheMoverDatasetVisitor(NestedDatasetVisitor[FileResult, Path]):
     """
     Перемещает файлы датасетов в директорию кэша
     """
@@ -29,7 +29,7 @@ class CacheMoverDatasetVisitor(NestedDatasetVisitor[FileResult, str]):
             os.makedirs(self._store_path)
 
     @override
-    def _visit_pd_dataset(self, elem: PdDataset) -> str:
+    def _visit_pd_dataset(self, elem: PdDataset) -> Path:
         file_info = self._params_tmp_link.get(elem.name)
         if not file_info or isinstance(file_info, dict):
             raise RuntimeError(f"File was not saved, bad params {self._params}")
@@ -47,5 +47,5 @@ class CacheMoverDatasetVisitor(NestedDatasetVisitor[FileResult, str]):
             except OSError:
                 pass
             _ = shutil.move(file_info.file_path, store_dataset_path)
-        elem.file_path = store_dataset_path.as_posix()
-        return store_dataset_path.as_posix()
+        elem.file_path = store_dataset_path
+        return store_dataset_path

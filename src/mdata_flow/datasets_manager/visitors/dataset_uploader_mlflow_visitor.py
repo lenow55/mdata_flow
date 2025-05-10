@@ -19,7 +19,7 @@ from mdata_flow.datasets_manager.visitors.nested_visitor import (
 from mdata_flow.file_name_validator import FileNameValidator
 
 
-class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[str, str | None]):
+class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[Path, str | None]):
     """
     Загружает файлы датасетов на mlflow s3
     """
@@ -31,8 +31,6 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[str, str | None]):
     _experiment_id: str
     _run_name: str
 
-    _store_path: Path
-
     def __init__(
         self, client: MlflowClient, cache_folder: str, experiment_id: str, run_name: str
     ) -> None:
@@ -43,7 +41,6 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[str, str | None]):
             run_name = FileNameValidator.sanitize(run_name)
         self._run_name = run_name
 
-        self._store_path = Path(cache_folder, run_name)
         self._experiment_id = experiment_id
 
     def get_run(self):

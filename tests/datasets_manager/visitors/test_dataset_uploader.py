@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -107,7 +108,7 @@ class TestArtifactUploaderDatasetVisitor:
             name="test_data", dataset=pd.DataFrame(data=[1, 2], columns=pd.Index(["1"]))
         )
         pd_dataset.digest = "test_digest"
-        pd_dataset.file_path = "test_digest.csv"
+        pd_dataset.file_path = Path("test_digest.csv")
 
         visitor.Visit(pd_dataset)
 
