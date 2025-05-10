@@ -125,7 +125,7 @@ class TestArtifactUploaderDatasetVisitor:
         # Existing assertions for other functionality
         mock_client.log_artifact.assert_called_once_with(
             run_id="test_run_id",
-            local_path=str(pd_dataset.file_path),
+            local_path=pd_dataset.file_path,
             artifact_path="datasets",
         )
         mock_client.log_inputs.assert_called_once()

@@ -139,7 +139,8 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[Path, str | None]):
     def _dataset_path(self) -> str | None:
         """"""
         # группа указывается только при наличии двух элементов
-        return os.path.join("datasets", *self._current_ds_key_path[:-1])
+        path = Path("datasets", *self._current_ds_key_path[:-1])
+        return path.as_posix()  # Для POSIX-строки или path для Path-объекта
 
     @override
     @final
