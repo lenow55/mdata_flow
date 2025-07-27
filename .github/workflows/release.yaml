@@ -24,7 +24,7 @@ jobs:
       # Perma-cache Poetry since we only need it for checking pyproject version
       # It uses cache by default
       - name: Install poetry with pipx
-        uses: BrandonLWhite/pipx-install-action@v1.0.1
+        uses: BrandonLWhite/pipx-install-action@v1.1.0
 
       - name: Add version to environment vars
         run: |
