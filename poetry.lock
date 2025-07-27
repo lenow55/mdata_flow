@@ -2,30 +2,30 @@
 
 [[package]]
 name = "allure-pytest"
-version = "2.14.2"
+version = "2.15.0"
 description = "Allure pytest integration"
 optional = false
 python-versions = "*"
 groups = ["dev"]
 files = [
-    {file = "allure_pytest-2.14.2-py3-none-any.whl", hash = "sha256:18f3baa9ebd1b6148223cfa898bacfc2794bb9446221adac1be71deeb26ed79a"},
-    {file = "allure_pytest-2.14.2.tar.gz", hash = "sha256:d387492178d27805863d95350bdc38b7feca3ed7165841997630fd4073cc9101"},
+    {file = "allure_pytest-2.15.0-py3-none-any.whl", hash = "sha256:f33c6ad242995bd27d2b467ee685772904d6941a6a6c9877657e0b8fe97a0ede"},
+    {file = "allure_pytest-2.15.0.tar.gz", hash = "sha256:b8f464d3bfeb6cb5e6a77e70eacd1aa3762133677cabece57a07c9f3bcd4b1e8"},
 ]
 
 [package.dependencies]
-allure-python-commons = "2.14.2"
+allure-python-commons = "2.15.0"
 pytest = ">=4.5.0"
 
 [[package]]
 name = "allure-python-commons"
-version = "2.14.2"
+version = "2.15.0"
 description = "Contains the API for end users as well as helper functions and classes to build Allure adapters for Python test frameworks"
 optional = false
 python-versions = ">=3.6"
 groups = ["dev"]
 files = [
-    {file = "allure_python_commons-2.14.2-py3-none-any.whl", hash = "sha256:ad50385a4c601ec31c86eed773d8ccfdcc687fecbb6535c9768af3bf03b50a19"},
-    {file = "allure_python_commons-2.14.2.tar.gz", hash = "sha256:7acdc4fe3efbe709604895e2393f082b2659d8e5653e77ff6367682e6e4a41bc"},
+    {file = "allure_python_commons-2.15.0-py3-none-any.whl", hash = "sha256:84ebbbca2e4c147ed151e615f995eb2e0dd688818d06c55df9e8e3ce4de6eeeb"},
+    {file = "allure_python_commons-2.15.0.tar.gz", hash = "sha256:4f639c8bb4b79df0d94f1baa88782c9399be3f45fd839ae583a314a5d451b978"},
 ]
 
 [package.dependencies]
@@ -2116,14 +2116,14 @@ xml = ["lxml (>=4.9.2)"]
 
 [[package]]
 name = "pandas-stubs"
-version = "2.2.3.250308"
+version = "2.3.0.250703"
 description = "Type annotations for pandas"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "pandas_stubs-2.2.3.250308-py3-none-any.whl", hash = "sha256:a377edff3b61f8b268c82499fdbe7c00fdeed13235b8b71d6a1dc347aeddc74d"},
-    {file = "pandas_stubs-2.2.3.250308.tar.gz", hash = "sha256:3a6e9daf161f00b85c83772ed3d5cff9522028f07a94817472c07b91f46710fd"},
+    {file = "pandas_stubs-2.3.0.250703-py3-none-any.whl", hash = "sha256:a9265fc69909f0f7a9cabc5f596d86c9d531499fed86b7838fd3278285d76b81"},
+    {file = "pandas_stubs-2.3.0.250703.tar.gz", hash = "sha256:fb6a8478327b16ed65c46b1541de74f5c5947f3601850caf3e885e0140584717"},
 ]
 
 [package.dependencies]
