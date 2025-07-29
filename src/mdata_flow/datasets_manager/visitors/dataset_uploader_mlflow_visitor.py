@@ -11,7 +11,7 @@ from mlflow.tracking.context import registry as context_registry
 from mlflow.utils.mlflow_tags import MLFLOW_DATASET_CONTEXT, MLFLOW_RUN_NAME
 from typing_extensions import Any, override
 
-from mdata_flow.datasets_manager.composites import PdDataset
+from mdata_flow.datasets_manager.composites import Dataset, PdDataset
 from mdata_flow.datasets_manager.context import DsContext
 from mdata_flow.datasets_manager.visitors.nested_visitor import (
     NestedDatasetVisitor,
@@ -64,7 +64,7 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[Path, str | None]):
         except (IndexError, KeyError, ValueError):
             return 0
 
-    def check_need_update(self, digest: str) -> bool:
+    def check_need_update(self, elem: Dataset) -> bool:
         """
         Проверяет необходимость обновления датасета на сервере
         выполняет поиск по хэшу датасета.
@@ -97,7 +97,10 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[Path, str | None]):
 
         for run in runs:
             for dataset_in in run.inputs.dataset_inputs:
-                if dataset_in.dataset.digest == digest:
+                if (
+                    dataset_in.dataset.digest == elem.digest
+                    and dataset_in.dataset.name == elem.name
+                ):
                     return False
         return True
 
@@ -147,7 +150,7 @@ class ArtifactUploaderDatasetVisitor(NestedDatasetVisitor[Path, str | None]):
     def _visit_pd_dataset(self, elem: PdDataset) -> str | None:
         # Подразумевается, что датасет уже был перемещён в папку кэша
 
-        if not self.check_need_update(elem.digest):
+        if not self.check_need_update(elem):
             return None
 
         run = self._get_or_create_run()
