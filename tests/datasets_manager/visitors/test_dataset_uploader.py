@@ -6,7 +6,7 @@ import pytest
 from mlflow.client import MlflowClient
 from mlflow.entities import DatasetInput, Run
 
-from mdata_flow.datasets_manager.composites import PdDataset
+from mdata_flow.datasets_manager.composites import Dataset, PdDataset
 from mdata_flow.datasets_manager.visitors.dataset_uploader_mlflow_visitor import (
     ArtifactUploaderDatasetVisitor,
 )
@@ -66,10 +66,16 @@ class TestArtifactUploaderDatasetVisitor:
         mock_run = MagicMock()
         mock_dataset_input = MagicMock(spec=DatasetInput)
         mock_dataset_input.dataset.digest = "test_digest"
+        mock_dataset_input.dataset.name = "test_dataset"
         mock_run.inputs.dataset_inputs = [mock_dataset_input]
         mock_client.search_runs.return_value = [mock_run]
 
-        assert visitor.check_need_update("test_digest") == False
+        pd_dataset = PdDataset(
+            name="test_dataset",
+            dataset=pd.DataFrame(data=[1, 2], columns=pd.Index(["1"])),
+        )
+        pd_dataset.digest = "test_digest"
+        assert not visitor.check_need_update(pd_dataset)
 
     def test_check_need_update_not_found(
         self, visitor: ArtifactUploaderDatasetVisitor, mock_client: MagicMock
@@ -78,7 +84,12 @@ class TestArtifactUploaderDatasetVisitor:
         mock_run.inputs.dataset_inputs = []
         mock_client.search_runs.return_value = [mock_run]
 
-        assert visitor.check_need_update("new_digest") == True
+        pd_dataset = PdDataset(
+            name="test_dataset",
+            dataset=pd.DataFrame(data=[1, 2], columns=pd.Index(["1"])),
+        )
+        pd_dataset.digest = "test_digest"
+        assert visitor.check_need_update(elem=pd_dataset)
 
     def test_get_or_create_run_types(
         self, visitor: ArtifactUploaderDatasetVisitor, mock_client: MagicMock
